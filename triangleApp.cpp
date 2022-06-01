@@ -23,6 +23,7 @@ void TriangleApp::initVulkan() {
     createVulkanInstance();
     // setupDebugMessenger();  // Default stdout used for now
     pickPhysicalDevice();
+    createLogicalDevice();
 }
 
 void TriangleApp::createVulkanInstance() {
@@ -148,8 +149,6 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 }
 
 void TriangleApp::pickPhysicalDevice() {
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
     if(deviceCount == 0) {
@@ -163,16 +162,51 @@ void TriangleApp::pickPhysicalDevice() {
     // We could also give a score to each device to check which is most suitable: Check page 63ff
     for(const auto& device : devices) {
         if(isDeviceSuitable(device)) {
-            physicalDevice = device;
+            m_physicalDevice = device;
             break;
         }
     }
 
-    if(physicalDevice == VK_NULL_HANDLE) {
+    if(m_physicalDevice == VK_NULL_HANDLE) {
         throw std::runtime_error("Failed to find a suitable GPU!");
     }
 }
 
+void TriangleApp::createLogicalDevice() {
+    QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+
+    // Queue Create Info
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+    queueCreateInfo.queueCount = 1;
+
+    float queuePriority = 1.0f;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    // Device Features - Will be used later
+    VkPhysicalDeviceFeatures deviceFeatures{};
+
+    // Logical device create info
+    VkDeviceCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+    createInfo.pEnabledFeatures = &deviceFeatures;
+
+    // This is not needed anymore but specified for backwards compatibility
+    createInfo.enabledExtensionCount = 0;
+    if(m_enableValidationLayers) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(m_validationLayers.size());
+        createInfo.ppEnabledLayerNames = m_validationLayers.data();
+    } else {
+        createInfo.enabledLayerCount = 0;
+    }
+
+    if(vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create logical device!");
+    }
+}
 
 void TriangleApp::run() {
     mainLoop();
@@ -186,9 +220,9 @@ void TriangleApp::mainLoop() {
 }
 
 TriangleApp::~TriangleApp() {
+    vkDestroyDevice(m_device, nullptr);
     vkDestroyInstance(m_instance, nullptr);
 
     glfwDestroyWindow(m_window);
-
     glfwTerminate();
 }
