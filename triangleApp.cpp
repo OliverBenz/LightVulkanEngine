@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 
 TriangleApp::TriangleApp() {
@@ -101,8 +102,49 @@ bool TriangleApp::checkValidationLayerSupport() {
     return true;
 }
 
-bool isDeviceSuitable(VkPhysicalDevice& device) {
-    return true;
+// NOTE: Struct will be useful in the future..
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+};
+
+//! Check if the device has a queue family that supports our required features.
+QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    QueueFamilyIndices indices;
+    int i  = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+            break;
+        }
+
+        ++i;
+    }
+
+    return indices;
+}
+
+bool isDeviceSuitable(VkPhysicalDevice device) {
+    /*
+    // Example: We need a GPU that supports geometry shaders
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+    VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+    return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+        deviceFeatures.geometryShader; 
+    */
+
+    // Device is ok if it has a queue family that supports our required commands.
+    QueueFamilyIndices indices = findQueueFamilies(device);
+    return indices.graphicsFamily.has_value();
 }
 
 void TriangleApp::pickPhysicalDevice() {
@@ -118,6 +160,7 @@ void TriangleApp::pickPhysicalDevice() {
     vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
 
     // Select first device that is suitable
+    // We could also give a score to each device to check which is most suitable: Check page 63ff
     for(const auto& device : devices) {
         if(isDeviceSuitable(device)) {
             physicalDevice = device;
