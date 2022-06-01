@@ -20,6 +20,8 @@ void TriangleApp::initWindow() {
 
 void TriangleApp::initVulkan() {
     createVulkanInstance();
+    // setupDebugMessenger();  // Default stdout used for now
+    pickPhysicalDevice();
 }
 
 void TriangleApp::createVulkanInstance() {
@@ -98,6 +100,36 @@ bool TriangleApp::checkValidationLayerSupport() {
 
     return true;
 }
+
+bool isDeviceSuitable(VkPhysicalDevice& device) {
+    return true;
+}
+
+void TriangleApp::pickPhysicalDevice() {
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
+    if(deviceCount == 0) {
+        throw std::runtime_error("Failed to fild GPUs with Vulkan support!");
+    }
+
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
+
+    // Select first device that is suitable
+    for(const auto& device : devices) {
+        if(isDeviceSuitable(device)) {
+            physicalDevice = device;
+            break;
+        }
+    }
+
+    if(physicalDevice == VK_NULL_HANDLE) {
+        throw std::runtime_error("Failed to find a suitable GPU!");
+    }
+}
+
 
 void TriangleApp::run() {
     mainLoop();

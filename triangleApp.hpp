@@ -3,6 +3,9 @@
 
 #include <vector>
 
+// TODO: Add chapters
+//  - Callback messages (52ff)
+//  - Debugging instance creation and destruction (57ff)
 class TriangleApp {
 public:
     TriangleApp();
@@ -12,8 +15,11 @@ public:
 
 private:
     void initWindow();
+
     void initVulkan();
     void createVulkanInstance();
+    void pickPhysicalDevice();
+    
     void mainLoop();
 
     bool checkValidationLayerSupport();
