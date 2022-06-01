@@ -40,7 +40,9 @@ private:
 #endif
 
     GLFWwindow* m_window;
+
     VkInstance m_instance;
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
     VkDevice m_device;
+    VkQueue m_graphicsQueue;
 };
