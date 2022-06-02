@@ -2,7 +2,6 @@
 
 #include <cstring>
 #include <iostream>
-#include <optional>
 #include <stdexcept>
 
 TriangleApp::TriangleApp() {
@@ -106,23 +105,13 @@ bool TriangleApp::checkValidationLayerSupport() {
 
 void TriangleApp::createSurface() {
     // Could also be done using vulkan but would be platform specific. GLFM calls the appropriate platform specific function from vulkan.
-    if(glfwCreateWIndowSurface(m_instance, m_window, nullptr, &m_surface) != VK_SUCCESS) {
+    if(glfwCreateWindowSurface(m_instance, m_window, nullptr, &m_surface) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create window surface");
     }
 }
 
-// Presentation queue family could differ from graphics queue family. (p. 75)
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-    std::optional<uint32_t> presentFamily;
-
-    bool isComplete() {
-        return graphicsFamily.has_value() && presentFamily.has_value();
-    }
-};
-
 //! Check if the device has a queue family that supports our required features.
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+QueueFamilyIndices TriangleApp::findQueueFamilies(VkPhysicalDevice device) {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
@@ -133,8 +122,8 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
     int i  = 0;
     for (const auto& queueFamily : queueFamilies) {
         // Check if the queue family supports presenting to our surface
-        vkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportHKR(device, i, m_surface, &presentSupport);
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport);
         if(presentSupport) {
             indices.presentFamily = i;
         }
@@ -157,7 +146,7 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
     return indices;
 }
 
-bool isDeviceSuitable(VkPhysicalDevice device) {
+bool TriangleApp::isDeviceSuitable(VkPhysicalDevice device) {
     /*
     // Example: We need a GPU that supports geometry shaders
     VkPhysicalDeviceProperties deviceProperties;

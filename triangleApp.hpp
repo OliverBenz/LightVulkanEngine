@@ -2,6 +2,17 @@
 #include <GLFW/glfw3.h>
 
 #include <vector>
+#include <optional>
+
+// Presentation queue family could differ from graphics queue family. (p. 75)
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
+
+    bool isComplete() {
+        return graphicsFamily.has_value() && presentFamily.has_value();
+    }
+};
 
 // TODO: Add chapters
 //  - Callback messages (52ff)
@@ -18,13 +29,16 @@ private:
 
     void initVulkan();
     void createVulkanInstance();
+    bool checkValidationLayerSupport();
     void createSurface();
+    
     void pickPhysicalDevice();
+    bool isDeviceSuitable(VkPhysicalDevice device);
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+    
     void createLogicalDevice();
     
     void mainLoop();
-
-    bool checkValidationLayerSupport();
 
 private:
     const uint32_t WIDTH = 800;
