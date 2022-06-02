@@ -61,5 +61,5 @@ private:
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
     VkDevice m_device;  // Logical device
     VkQueue m_graphicsQueue;
-
+    VkQueue m_presentQueue;
 };
