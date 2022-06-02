@@ -22,6 +22,7 @@ void TriangleApp::initWindow() {
 void TriangleApp::initVulkan() {
     createVulkanInstance();
     // setupDebugMessenger();  // Default stdout used for now
+    createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
 }
@@ -102,6 +103,13 @@ bool TriangleApp::checkValidationLayerSupport() {
 
     return true;
 }
+
+void TriangleApp::createSurface() {
+    if(glfwCreateWIndowSurface(m_instance, m_window, nullptr, &m_surface) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create window surface");
+    }
+}
+
 
 // NOTE: Struct will be useful in the future..
 struct QueueFamilyIndices {
@@ -223,6 +231,7 @@ void TriangleApp::mainLoop() {
 
 TriangleApp::~TriangleApp() {
     vkDestroyDevice(m_device, nullptr);
+    vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
     vkDestroyInstance(m_instance, nullptr);
 
     glfwDestroyWindow(m_window);

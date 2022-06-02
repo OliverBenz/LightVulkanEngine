@@ -18,6 +18,7 @@ private:
 
     void initVulkan();
     void createVulkanInstance();
+    void createSurface();
     void pickPhysicalDevice();
     void createLogicalDevice();
     
@@ -40,9 +41,11 @@ private:
 #endif
 
     GLFWwindow* m_window;
-
     VkInstance m_instance;
+    VkSurfaceKHR m_surface;
+
     VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
-    VkDevice m_device;
+    VkDevice m_device;  // Logical device
     VkQueue m_graphicsQueue;
+
 };
