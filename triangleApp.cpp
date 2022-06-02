@@ -105,15 +105,20 @@ bool TriangleApp::checkValidationLayerSupport() {
 }
 
 void TriangleApp::createSurface() {
+    // Could also be done using vulkan but would be platform specific. GLFM calls the appropriate platform specific function from vulkan.
     if(glfwCreateWIndowSurface(m_instance, m_window, nullptr, &m_surface) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create window surface");
     }
 }
 
-
-// NOTE: Struct will be useful in the future..
+// Presentation queue family could differ from graphics queue family. (p. 75)
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
+
+    bool isComplete() {
+        return graphicsFamily.has_value() && presentFamily.has_value();
+    }
 };
 
 //! Check if the device has a queue family that supports our required features.
@@ -127,8 +132,22 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
     QueueFamilyIndices indices;
     int i  = 0;
     for (const auto& queueFamily : queueFamilies) {
+        // Check if the queue family supports presenting to our surface
+        vkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportHKR(device, i, m_surface, &presentSupport);
+        if(presentSupport) {
+            indices.presentFamily = i;
+        }
+
+        // Check if the queue family supports graphical rendering.
         if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indices.graphicsFamily = i;
+        }
+
+        // TODO: Preferably explicitly check for *one* queue family that supports both -> slightly better performance
+        //   - This will probably already be the case but it's not a rule right now. (p. 75) 
+
+        if(indices.isComplete()) {
             break;
         }
 
@@ -153,7 +172,7 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
 
     // Device is ok if it has a queue family that supports our required commands.
     QueueFamilyIndices indices = findQueueFamilies(device);
-    return indices.graphicsFamily.has_value();
+    return indices.isComplete();
 }
 
 void TriangleApp::pickPhysicalDevice() {
