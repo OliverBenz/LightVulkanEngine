@@ -37,19 +37,21 @@ private:
     void createVulkanInstance();
     bool checkValidationLayerSupport();
     void createSurface();
-    void createSwapChain();
     
     void pickPhysicalDevice();
     bool isDeviceSuitable(VkPhysicalDevice device);
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
     bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+    
+    void createLogicalDevice();
 
+    void createSwapChain();
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
     
-    void createLogicalDevice();    
+    void createImageViews();
 
     void mainLoop();
 
@@ -85,4 +87,5 @@ private:
     std::vector<VkImage> m_swapChainImages;
     VkFormat m_swapChainImageFormat;
     VkExtent2D m_swapChainExtent;
+    std::vector<VkImageView> m_swapChainImageViews;
 };
