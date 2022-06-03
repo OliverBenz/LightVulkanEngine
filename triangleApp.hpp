@@ -14,6 +14,12 @@ struct QueueFamilyIndices {
     }
 };
 
+struct SwapChainSupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities;       // min/max number images, min/max size image, etc
+    std::vector<VkSurfaceFormatKHR> formats;     // pixel format, color space, etc
+    std::vector<VkPresentModeKHR> presentModes;  // presentation modes
+};
+
 // TODO: Add chapters
 //  - Callback messages (52ff)
 //  - Debugging instance creation and destruction (57ff)
@@ -35,9 +41,15 @@ private:
     void pickPhysicalDevice();
     bool isDeviceSuitable(VkPhysicalDevice device);
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
     
-    void createLogicalDevice();
-    
+    void createLogicalDevice();    
+
     void mainLoop();
 
 private:
@@ -53,6 +65,11 @@ private:
 #else
     const bool m_enableValidationLayers = true;
 #endif
+
+    //! The set of extensions we reqiure for our task.
+    const std::vector<const char*> deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
 
     GLFWwindow* m_window;
     VkInstance m_instance;
