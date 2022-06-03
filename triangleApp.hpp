@@ -37,6 +37,7 @@ private:
     void createVulkanInstance();
     bool checkValidationLayerSupport();
     void createSurface();
+    void createSwapChain();
     
     void pickPhysicalDevice();
     bool isDeviceSuitable(VkPhysicalDevice device);
@@ -79,4 +80,9 @@ private:
     VkDevice m_device;  // Logical device
     VkQueue m_graphicsQueue;
     VkQueue m_presentQueue;
+
+    VkSwapchainKHR m_swapChain;
+    std::vector<VkImage> m_swapChainImages;
+    VkFormat m_swapChainImageFormat;
+    VkExtent2D m_swapChainExtent;
 };
