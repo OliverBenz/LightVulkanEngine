@@ -414,6 +414,10 @@ void TriangleApp::createImageViews() {
     }
 }
 
+void TriangleApp::createGraphicsPipeline() {
+
+}
+
 void TriangleApp::run() {
     mainLoop();
 }
