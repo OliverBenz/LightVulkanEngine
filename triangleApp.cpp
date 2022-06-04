@@ -473,11 +473,6 @@ void TriangleApp::createGraphicsPipeline() {
 }
 
 void TriangleApp::run() {
-    mainLoop();
-}
-
-void TriangleApp::mainLoop() {
-    // TODO: Blocking queue
     while(!glfwWindowShouldClose(m_window)) {
         glfwPollEvents();
     }

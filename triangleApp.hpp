@@ -55,8 +55,6 @@ private:
     void createGraphicsPipeline();
     VkShaderModule createShadersModule(const std::vector<char>& code);
 
-    void mainLoop();
-
 private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
