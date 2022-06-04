@@ -53,6 +53,7 @@ private:
     
     void createImageViews();
     void createGraphicsPipeline();
+    VkShaderModule createShadersModule(const std::vector<char>& code);
 
     void mainLoop();
 
