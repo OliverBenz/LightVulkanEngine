@@ -57,6 +57,9 @@ private:
     VkShaderModule createShadersModule(const std::vector<char>& code);
 
     void createFrameBuffers();
+    void createCommandPool();
+    void createCommandBuffer();
+    void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 private:
     const uint32_t WIDTH = 800;
@@ -96,4 +99,7 @@ private:
     VkRenderPass m_renderPass;
     VkPipelineLayout m_pipelineLayout;
     VkPipeline m_graphicsPipeline;
+
+    VkCommandPool m_commandPool;
+    VkCommandBuffer m_commandBuffer;
 };
