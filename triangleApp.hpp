@@ -61,6 +61,9 @@ private:
     void createCommandBuffer();
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
+    void createSyncObjects();
+    void drawFrame();
+
 private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
@@ -102,4 +105,8 @@ private:
 
     VkCommandPool m_commandPool;
     VkCommandBuffer m_commandBuffer;
+
+    VkSemaphore m_imageAvailableSemaphore;
+    VkSemaphore m_renderFinishedSemaphore;
+    VkFence m_inFlightFence;
 };
