@@ -58,7 +58,7 @@ private:
 
     void createFrameBuffers();
     void createCommandPool();
-    void createCommandBuffer();
+    void createCommandBuffers();
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     void createSyncObjects();
@@ -83,6 +83,10 @@ private:
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
+    //! How many images to work on at the same time.
+    // TODO: Make this constexpr and use std::array instead of std::vector to contain all data.
+    const int MAX_FRAMES_IN_FLIGHT = 2;
+
     GLFWwindow* m_window;
     VkInstance m_instance;
     VkSurfaceKHR m_surface;
@@ -103,10 +107,12 @@ private:
     VkPipelineLayout m_pipelineLayout;
     VkPipeline m_graphicsPipeline;
 
-    VkCommandPool m_commandPool;
-    VkCommandBuffer m_commandBuffer;
+    uint32_t m_currentFrame = 0;
 
-    VkSemaphore m_imageAvailableSemaphore;
-    VkSemaphore m_renderFinishedSemaphore;
-    VkFence m_inFlightFence;
+    VkCommandPool m_commandPool;
+    std::vector<VkCommandBuffer> m_commandBuffers;
+
+    std::vector<VkSemaphore> m_imageAvailableSemaphores;
+    std::vector<VkSemaphore> m_renderFinishedSemaphores;
+    std::vector<VkFence> m_inFlightFences;
 };
