@@ -31,13 +31,18 @@ TriangleApp::TriangleApp() {
     initVulkan();
 }
 
+static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+    auto app = reinterpret_cast<TriangleApp*>(glfwGetWindowUserPointer(window));
+    app->m_framebufferResized = true;
+}
 
 void TriangleApp::initWindow() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);  // Do not create OpenGL context
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     m_window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+    glfwSetWindowUserPointer(m_window, this);  // Give glfw pointer to this class so we can access it in callback functions.
+    glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
 }
 
 void TriangleApp::initVulkan() {
@@ -820,8 +825,9 @@ void TriangleApp::drawFrame() {
     presentInfo.pResults = nullptr;
 
     result = vkQueuePresentKHR(m_presentQueue, &presentInfo);
-    
-    if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+
+    if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_framebufferResized) {
+        m_framebufferResized = false;
         recreateSwapChain();
     } else if (result != VK_SUCCESS) {
         throw std::runtime_error("Failed to present swap chain image!");
