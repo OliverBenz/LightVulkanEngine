@@ -50,7 +50,7 @@ void TriangleApp::initVulkan() {
     createImageViews();
     createRenderPass();
     createGraphicsPipeline();
-    createFrameBuffers();
+    createFramebuffers();
     createCommandPool();
     createCommandBuffers();
     createSyncObjects();
@@ -197,6 +197,34 @@ void TriangleApp::createSwapChain() {
     // Store swapchain data
     m_swapChainImageFormat = surfaceFormat.format;
     m_swapChainExtent = extent;
+}
+
+void TriangleApp::cleanupSwapChain() {
+    for(auto framebuffer : m_swapChainFramebuffers) {
+        vkDestroyFramebuffer(m_device, framebuffer, nullptr);
+    }
+
+    vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
+    vkDestroyRenderPass(m_device, m_renderPass, nullptr);
+
+    for(auto imageView : m_swapChainImageViews) {
+        vkDestroyImageView(m_device, imageView, nullptr);
+    }
+
+    vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
+}
+
+void TriangleApp::recreateSwapChain() {
+    vkDeviceWaitIdle(m_device);
+
+    cleanupSwapChain();
+
+    createSwapChain();
+    createImageViews();
+    createRenderPass();
+    createGraphicsPipeline();
+    createFramebuffers();
 }
 
 //! Check if the device has a queue family that supports our required features.
@@ -626,7 +654,7 @@ void TriangleApp::createGraphicsPipeline() {
     vkDestroyShaderModule(m_device, vertShaderModule, nullptr);
 }
 
-void TriangleApp::createFrameBuffers() {
+void TriangleApp::createFramebuffers() {
     m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
 
     for(size_t i = 0; i != m_swapChainImageViews.size(); ++i) {
@@ -742,10 +770,20 @@ void TriangleApp::run() {
 void TriangleApp::drawFrame() {
     // Make sure only one image is added to the command buffer at once. (p.137ff)
     vkWaitForFences(m_device, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
-    vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
 
     uint32_t imageIndex = -1;
-    vkAcquireNextImageKHR(m_device, m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(m_device, m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+    if(result == VK_ERROR_OUT_OF_DATE_KHR) {
+        recreateSwapChain();
+        return;
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        // Suboptimal swap chain is also ok.. Recreate after presenting the image.
+        throw std::runtime_error("Failed to acquire swap chain image!");
+    }
+
+    // Only reset if we are submitting work.. Otherwise could cause deadlock
+    vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
 
     vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
     recordCommandBuffer(m_commandBuffers[m_currentFrame], imageIndex);
@@ -781,12 +819,20 @@ void TriangleApp::drawFrame() {
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
 
-    vkQueuePresentKHR(m_presentQueue, &presentInfo);
+    result = vkQueuePresentKHR(m_presentQueue, &presentInfo);
+    
+    if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        recreateSwapChain();
+    } else if (result != VK_SUCCESS) {
+        throw std::runtime_error("Failed to present swap chain image!");
+    }
 
     m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 TriangleApp::~TriangleApp() {
+    cleanupSwapChain();
+
     for(size_t i = 0; i != MAX_FRAMES_IN_FLIGHT; ++i) {
         vkDestroySemaphore(m_device, m_imageAvailableSemaphores[i], nullptr);
         vkDestroySemaphore(m_device, m_renderFinishedSemaphores[i], nullptr);
@@ -794,20 +840,6 @@ TriangleApp::~TriangleApp() {
     }
     
     vkDestroyCommandPool(m_device, m_commandPool, nullptr);
-
-    for(auto framebuffer : m_swapChainFramebuffers) {
-        vkDestroyFramebuffer(m_device, framebuffer, nullptr);
-    }
-
-    vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
-    vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-
-    for(auto imageView : m_swapChainImageViews) {
-        vkDestroyImageView(m_device, imageView, nullptr);
-    }
-
-    vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
     vkDestroyDevice(m_device, nullptr);
     vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
     vkDestroyInstance(m_instance, nullptr);

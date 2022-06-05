@@ -46,6 +46,8 @@ private:
     void createLogicalDevice();
 
     void createSwapChain();
+    void cleanupSwapChain();
+    void recreateSwapChain(); // If window surface changes for example..
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -56,7 +58,7 @@ private:
     void createGraphicsPipeline();
     VkShaderModule createShadersModule(const std::vector<char>& code);
 
-    void createFrameBuffers();
+    void createFramebuffers();
     void createCommandPool();
     void createCommandBuffers();
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
