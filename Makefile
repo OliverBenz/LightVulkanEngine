@@ -10,4 +10,4 @@ test: VulkanTest
 	./VulkanTest
 
 clean:
-	rm -f VulkanTest
+	rm -f VulkanTest resources/shaders/*.spv
