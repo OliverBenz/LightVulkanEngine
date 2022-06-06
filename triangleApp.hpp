@@ -89,6 +89,9 @@ private:
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
     void createTextureImageView();
 
+    // Texture sampler
+    void createTextureSampler();
+
 private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
@@ -157,8 +160,10 @@ private:
     // Image
     VkImage m_textureImage;
     VkDeviceMemory m_textureImageMemory;
-
     VkImageView m_textureImageView;
+
+    // Texture Sampler
+    VkSampler m_textureSampler;
 
 public:
     bool m_framebufferResized = false;
