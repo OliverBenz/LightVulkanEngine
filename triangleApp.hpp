@@ -55,6 +55,7 @@ private:
     
     void createImageViews();
     void createRenderPass();
+    void createDescriptorSetLayout();
     void createGraphicsPipeline();
     VkShaderModule createShadersModule(const std::vector<char>& code);
 
@@ -113,6 +114,7 @@ private:
     std::vector<VkFramebuffer> m_swapChainFramebuffers;
 
     VkRenderPass m_renderPass;
+    VkDescriptorSetLayout m_descriptorSetLayout;
     VkPipelineLayout m_pipelineLayout;
     VkPipeline m_graphicsPipeline;
 
