@@ -54,6 +54,7 @@ private:
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
     
     void createImageViews();
+    VkImageView createImageView(VkImage image, VkFormat format);
     void createRenderPass();
     void createDescriptorSetLayout();
     void createGraphicsPipeline();
@@ -86,6 +87,7 @@ private:
         VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+    void createTextureImageView();
 
 private:
     const uint32_t WIDTH = 800;
@@ -155,6 +157,8 @@ private:
     // Image
     VkImage m_textureImage;
     VkDeviceMemory m_textureImageMemory;
+
+    VkImageView m_textureImageView;
 
 public:
     bool m_framebufferResized = false;
