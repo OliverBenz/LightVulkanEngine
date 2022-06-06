@@ -60,19 +60,23 @@ private:
     VkShaderModule createShadersModule(const std::vector<char>& code);
 
     void createFramebuffers();
-    void createCommandPool();
     
     void createVertexBuffer();
     void createIndexBuffer();
+    void createUniformBuffers();
+    void createDescriptorPool();
+    void createDescriptorSets();
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    void createCommandPool();
     void createCommandBuffers();
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     void createSyncObjects();
     void drawFrame();
+    void updateUniformBuffer(uint32_t currentImage);
 
 private:
     const uint32_t WIDTH = 800;
@@ -96,6 +100,7 @@ private:
     //! How many images to work on at the same time.
     // TODO: Make this constexpr and use std::array instead of std::vector to contain all data.
     const int MAX_FRAMES_IN_FLIGHT = 2;
+    uint32_t m_currentFrame = 0;
 
     GLFWwindow* m_window;
     VkInstance m_instance;
@@ -114,19 +119,26 @@ private:
     std::vector<VkFramebuffer> m_swapChainFramebuffers;
 
     VkRenderPass m_renderPass;
+    VkDescriptorPool m_descriptorPool;
+    std::vector<VkDescriptorSet> m_descriptorSets;
     VkDescriptorSetLayout m_descriptorSetLayout;
     VkPipelineLayout m_pipelineLayout;
     VkPipeline m_graphicsPipeline;
 
-    uint32_t m_currentFrame = 0;
-
+    // Buffers
     VkCommandPool m_commandPool;
     std::vector<VkCommandBuffer> m_commandBuffers;
+    
     VkBuffer m_vertexBuffer;
     VkDeviceMemory m_vertexBufferMemory;
+    
     VkBuffer m_indexBuffer;
     VkDeviceMemory m_indexBufferMemory;
 
+    std::vector<VkBuffer> m_uniformBuffers;
+    std::vector<VkDeviceMemory> m_uniformBuffersMemory;
+
+    // Sync objects
     std::vector<VkSemaphore> m_imageAvailableSemaphores;
     std::vector<VkSemaphore> m_renderFinishedSemaphores;
     std::vector<VkFence> m_inFlightFences;
