@@ -60,7 +60,6 @@ private:
     VkShaderModule createShadersModule(const std::vector<char>& code);
 
     void createFramebuffers();
-    
     void createVertexBuffer();
     void createIndexBuffer();
     void createUniformBuffers();
@@ -77,6 +76,11 @@ private:
     void createSyncObjects();
     void drawFrame();
     void updateUniformBuffer(uint32_t currentImage);
+
+    // Image
+    void createTextureImage();
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+        VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 
 private:
     const uint32_t WIDTH = 800;
@@ -142,6 +146,10 @@ private:
     std::vector<VkSemaphore> m_imageAvailableSemaphores;
     std::vector<VkSemaphore> m_renderFinishedSemaphores;
     std::vector<VkFence> m_inFlightFences;
+
+    // Image
+    VkImage m_textureImage;
+    VkDeviceMemory m_textureImageMemory;
 
 public:
     bool m_framebufferResized = false;
