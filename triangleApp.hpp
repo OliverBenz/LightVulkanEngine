@@ -54,7 +54,7 @@ private:
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
     
     void createImageViews();
-    VkImageView createImageView(VkImage image, VkFormat format);
+    VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
     void createRenderPass();
     void createDescriptorSetLayout();
     void createGraphicsPipeline();
@@ -91,6 +91,11 @@ private:
 
     // Texture sampler
     void createTextureSampler();
+
+    // Depth Image
+    void createDepthResources();
+    VkFormat findDepthFormat();
+    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
 private:
     const uint32_t WIDTH = 800;
@@ -164,6 +169,11 @@ private:
 
     // Texture Sampler
     VkSampler m_textureSampler;
+
+    // Depth Image
+    VkImage m_depthImage;
+    VkDeviceMemory m_depthImageMemory;
+    VkImageView m_depthImageView;
 
 public:
     bool m_framebufferResized = false;
