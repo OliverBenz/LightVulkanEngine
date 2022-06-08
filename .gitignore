@@ -1,3 +1,5 @@
+.idea/
+
 VulkanTest
 resources/shaders/frag.spv
 resources/shaders/vert.spv

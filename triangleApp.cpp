@@ -1,7 +1,5 @@
 #include "triangleApp.hpp"
 
-#include "vertex.hpp"
-
 #include <set>
 #include <cstring>
 #include <cstdint>
@@ -21,6 +19,10 @@
 // For images
 #define STB_IMAGE_IMPLEMENTATION
 #include "lib/stb/stb_image.h"
+
+// For models
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "lib/tol/tiny_obj_loader.h"
 
 static std::vector<char> readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -75,6 +77,7 @@ void TriangleApp::initVulkan() {
     createTextureImage();
     createTextureImageView();
     createTextureSampler();
+	loadModel();
     createVertexBuffer();
     createIndexBuffer();
     createUniformBuffers();
@@ -842,10 +845,10 @@ void TriangleApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t im
     VkBuffer vertexBuffers[] = {m_vertexBuffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSets[m_currentFrame], 0, nullptr);
     
-    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -1003,7 +1006,7 @@ void TriangleApp::createImage(uint32_t width, uint32_t height, VkFormat format, 
 void TriangleApp::createTextureImage() {
     // Read image
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("resources/textures/example.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(m_pathTexture.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     VkDeviceSize imageSize = texWidth * texHeight * 4;  // 4 Bytes per pixel
 
@@ -1133,8 +1136,39 @@ void TriangleApp::createTextureSampler() {
     }
 }
 
+void TriangleApp::loadModel() {
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string warn, err;
+
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, m_pathModel.c_str())) {
+		throw std::runtime_error(warn + err);
+	}
+
+	for (const auto& shape : shapes) {
+		for (const auto& index : shape.mesh.indices) {
+			Vertex vertex{};
+
+			vertex.pos = {
+					attrib.vertices[3 * index.vertex_index + 0],
+					attrib.vertices[3 * index.vertex_index + 1],
+					attrib.vertices[3 * index.vertex_index + 2]
+			};
+			vertex.texCoord = {
+					attrib.texcoords[2 * index.texcoord_index + 0],
+					attrib.texcoords[2 * index.texcoord_index + 1]
+			};
+			vertex.color = {1.0f, 1.0f, 1.0f};
+
+			m_vertices.push_back(vertex);
+			m_indices.push_back(m_indices.size());
+		}
+	}
+}
+
 void TriangleApp::createVertexBuffer() {
-    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+    VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
 
     // Host local staging buffer
     VkBuffer stagingBuffer;
@@ -1144,7 +1178,7 @@ void TriangleApp::createVertexBuffer() {
 
     void* data = nullptr;
     vkMapMemory(m_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+    memcpy(data, m_vertices.data(), static_cast<size_t>(bufferSize));
     vkUnmapMemory(m_device, stagingBufferMemory);
 
     // Device local vertex buffer
@@ -1158,7 +1192,7 @@ void TriangleApp::createVertexBuffer() {
 }
 
 void TriangleApp::createIndexBuffer() {
-    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+    VkDeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
 
     // Host local staging buffer
     VkBuffer stagingBuffer;
@@ -1168,7 +1202,7 @@ void TriangleApp::createIndexBuffer() {
 
     void* data = nullptr;
     vkMapMemory(m_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
+    memcpy(data, m_indices.data(), static_cast<size_t>(bufferSize));
     vkUnmapMemory(m_device, stagingBufferMemory);
 
     // Device local vertex buffer

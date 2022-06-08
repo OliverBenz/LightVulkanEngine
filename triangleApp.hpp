@@ -2,7 +2,9 @@
 #include <GLFW/glfw3.h>
 
 #include <vector>
+#include <string>
 #include <optional>
+#include "vertex.hpp"
 
 // Presentation queue family could differ from graphics queue family. (p. 75)
 struct QueueFamilyIndices {
@@ -97,6 +99,9 @@ private:
     VkFormat findDepthFormat();
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
+	// Model
+	void loadModel();
+
 private:
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
@@ -174,6 +179,12 @@ private:
     VkImage m_depthImage;
     VkDeviceMemory m_depthImageMemory;
     VkImageView m_depthImageView;
+
+	// Module
+	const std::string m_pathModel = "resources/models/viking_room.obj";
+	const std::string m_pathTexture = "resources/textures/viking_room.png";
+	std::vector<Vertex> m_vertices;
+	std::vector<uint32_t> m_indices;
 
 public:
     bool m_framebufferResized = false;
