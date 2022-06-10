@@ -181,8 +181,8 @@ private:
     VkImageView m_depthImageView;
 
 	// Module
-	const std::string m_pathModel = "resources/models/viking_room.obj";
-	const std::string m_pathTexture = "resources/textures/viking_room.png";
+	const std::string m_pathModel = "../resources/models/viking_room.obj";
+	const std::string m_pathTexture = "../resources/textures/viking_room.png";
 	std::vector<Vertex> m_vertices;
 	std::vector<uint32_t> m_indices;
 

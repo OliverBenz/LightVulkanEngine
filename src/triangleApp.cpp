@@ -625,8 +625,8 @@ void TriangleApp::createDescriptorSetLayout() {
 }
 
 void TriangleApp::createGraphicsPipeline() {
-    auto vertShaderCode = readFile("resources/shaders/vert.spv");
-    auto fragShaderCode = readFile("resources/shaders/frag.spv");
+    auto vertShaderCode = readFile("../resources/shaders/vert.spv");
+    auto fragShaderCode = readFile("../resources/shaders/frag.spv");
 
     VkShaderModule vertShaderModule = createShadersModule(vertShaderCode);
     VkShaderModule fragShaderModule = createShadersModule(fragShaderCode);
