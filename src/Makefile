@@ -1,8 +1,8 @@
 CFLAGS = -std=c++17 -O2
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
-VulkanTest: main.cpp triangleApp.hpp triangleApp.cpp vertex.hpp lib/stb/stb_image.h lib/tol/tiny_obj_loader.h
-	g++ $(CFLAGS) -o VulkanTest main.cpp triangleApp.cpp $(LDFLAGS)
+VulkanTest: main.cpp triangleApp.hpp triangleApp.cpp vertex.hpp window.hpp window.hpp device.cpp device.hpp
+	g++ $(CFLAGS) -o VulkanTest main.cpp triangleApp.cpp device.cpp window.cpp $(LDFLAGS)
 
 .PHONY: test clean
 
