@@ -1,4 +1,4 @@
-#include "triangleApp.hpp"
+#include "application.hpp"
 
 #include <set>
 #include <cstring>

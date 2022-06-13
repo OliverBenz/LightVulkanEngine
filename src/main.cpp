@@ -1,4 +1,4 @@
-#include "triangleApp.hpp"
+#include "application.hpp"
 
 #include <iostream>
 
