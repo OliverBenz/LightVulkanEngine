@@ -15,6 +15,10 @@ GLFWwindow* Window::handle() {
 	return m_window;
 }
 
+VkExtent2D Window::extent() {
+	return {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)};
+}
+
 void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 	win->m_framebufferResized = true;
