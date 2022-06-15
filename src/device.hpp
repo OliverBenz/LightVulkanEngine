@@ -24,6 +24,7 @@ public:
 	QueueFamilyIndices findQueueFamilies();
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	SwapChainSupportDetails getSwapChainSupport(VkPhysicalDevice device);
 
 private:
 	void createVulkanInstance();
@@ -35,8 +36,6 @@ private:
 
 	bool isDeviceSuitable(VkPhysicalDevice device);
 	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-
-	SwapChainSupportDetails getSwapChainSupport(VkPhysicalDevice device);
 	bool checkValidationLayerSupport();
 
 private:

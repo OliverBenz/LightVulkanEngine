@@ -2,10 +2,7 @@
 
 #include <set>
 #include <cstring>
-#include <cstdint>
-#include <iostream>
 #include <stdexcept>
-#include <limits>
 #include <algorithm>
 #include <fstream>
 #include <unordered_map>
@@ -42,14 +39,11 @@ static std::vector<char> readFile(const std::string& filename) {
 }
 
 
-TriangleApp::TriangleApp() {
-	createSwapChain();
-	createImageViews();
-	createRenderPass();
+TriangleApp::TriangleApp() : m_swapchain(std::make_unique<Swapchain>(m_window, m_device)) {
+	// NOTE: These two before the framebuffers in swapchain?
 	createDescriptorSetLayout();
 	createGraphicsPipeline();
-	createDepthResources();
-	createFramebuffers();
+
 	createTextureImage();
 	createTextureImageView();
 	createTextureSampler();
@@ -60,161 +54,6 @@ TriangleApp::TriangleApp() {
 	createDescriptorPool();
 	createDescriptorSets();
 	createCommandBuffers();
-	createSyncObjects();
-}
-
-static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-    auto app = reinterpret_cast<TriangleApp*>(glfwGetWindowUserPointer(window));
-    app->m_framebufferResized = true;
-}
-
-void TriangleApp::createSwapChain() {
-    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_device.physicalDevice());
-
-    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
-
-    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-    if(swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
-        imageCount = swapChainSupport.capabilities.maxImageCount;
-    }
-
-    VkSwapchainCreateInfoKHR createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = m_device.surface();
-    createInfo.minImageCount = imageCount;
-    createInfo.imageFormat = surfaceFormat.format;
-    createInfo.imageColorSpace = surfaceFormat.colorSpace;
-    createInfo.imageExtent = extent;
-    createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-    QueueFamilyIndices indices = m_device.findQueueFamilies(m_device.physicalDevice());
-    uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
-
-    if(indices.graphicsFamily != indices.presentFamily) {
-        // NOTE: CONCURRENT is less performant but we can avoid ownership management for now
-        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;  // Images can be used across queue families: slower
-        createInfo.queueFamilyIndexCount = 2;
-        createInfo.pQueueFamilyIndices = queueFamilyIndices;
-    } else {
-        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;   // Image is owned by one queue family: faster
-        createInfo.queueFamilyIndexCount = 0;
-        createInfo.pQueueFamilyIndices = nullptr;
-    }
-
-    createInfo.preTransform = swapChainSupport.capabilities.currentTransform; // No transformation of images (rotation, etc)
-    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-
-    createInfo.presentMode = presentMode;
-    createInfo.clipped = VK_TRUE;  // We don't care about color of pixels that are obscured
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-    if(vkCreateSwapchainKHR(m_device.device(), &createInfo, nullptr, &m_swapChain) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create swap chain!");
-    }
-
-    // Get swap chain images
-    vkGetSwapchainImagesKHR(m_device.device(), m_swapChain, &imageCount, nullptr);
-    m_swapChainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(m_device.device(), m_swapChain, &imageCount, m_swapChainImages.data());
-
-    // Store swapchain data
-    m_swapChainImageFormat = surfaceFormat.format;
-    m_swapChainExtent = extent;
-}
-
-void TriangleApp::cleanupSwapChain() {
-    vkDestroyImageView(m_device.device(), m_depthImageView, nullptr);
-    vkDestroyImage(m_device.device(), m_depthImage, nullptr);
-    vkFreeMemory(m_device.device(), m_depthImageMemory, nullptr);
-
-    for(auto framebuffer : m_swapChainFramebuffers) {
-        vkDestroyFramebuffer(m_device.device(), framebuffer, nullptr);
-    }
-
-    vkDestroyPipeline(m_device.device(), m_graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(m_device.device(), m_pipelineLayout, nullptr);
-    vkDestroyRenderPass(m_device.device(), m_renderPass, nullptr);
-
-    for(auto imageView : m_swapChainImageViews) {
-        vkDestroyImageView(m_device.device(), imageView, nullptr);
-    }
-
-    vkDestroySwapchainKHR(m_device.device(), m_swapChain, nullptr);
-}
-
-void TriangleApp::recreateSwapChain() {
-    m_window.stopWhileMinimized();
-
-    vkDeviceWaitIdle(m_device.device());
-
-    cleanupSwapChain();
-
-    createSwapChain();
-    createImageViews();
-    createRenderPass();
-    createGraphicsPipeline();
-    createDepthResources();
-    createFramebuffers();
-}
-
-SwapChainSupportDetails TriangleApp::querySwapChainSupport(VkPhysicalDevice device) {
-    SwapChainSupportDetails details;
-
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_device.surface(), &details.capabilities);
-
-    uint32_t formatCount = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_device.surface(), &formatCount, nullptr);
-    if(formatCount != 0) {
-        details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_device.surface(), &formatCount, details.formats.data());
-    }
-
-    uint32_t presentModeCount = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_device.surface(), &presentModeCount, nullptr);
-    if(presentModeCount != 0) {
-        details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_device.surface(), &presentModeCount, details.presentModes.data());
-    }
-
-    return details; 
-}
-
-VkSurfaceFormatKHR TriangleApp::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-    for(const auto& availableFormat : availableFormats) {
-        if(availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-            return availableFormat;
-        }
-    }
-
-    return availableFormats[0];
-}
-
-VkPresentModeKHR TriangleApp::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-    for(const auto& availablePresentMode : availablePresentModes) {
-        // Different options good for dirrent scenarios (check p.83f)
-        if(availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-            return availablePresentMode;
-        }
-    }
-
-    return VK_PRESENT_MODE_FIFO_KHR;
-}
-
-VkExtent2D TriangleApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-    // Get the swap chain image resolution. Needs to be resolved because of pixel vs coordinate issue. (p.85)
-    if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
-        return capabilities.currentExtent;
-    } else {
-        VkExtent2D actualExtent = m_window.extent();
-
-        actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-        actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-        return actualExtent;
-    }
 }
 
 VkImageView TriangleApp::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
@@ -243,14 +82,6 @@ VkImageView TriangleApp::createImageView(VkImage image, VkFormat format, VkImage
     return imageView;
 }
 
-void TriangleApp::createImageViews() {
-    m_swapChainImageViews.resize(m_swapChainImages.size());
-
-    for(size_t i = 0; i != m_swapChainImages.size(); ++i) {
-        m_swapChainImageViews[i] = createImageView(m_swapChainImages[i], m_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
-    }
-}
-
 VkShaderModule TriangleApp::createShadersModule(const std::vector<char>& code) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -263,66 +94,6 @@ VkShaderModule TriangleApp::createShadersModule(const std::vector<char>& code) {
     }
 
     return shaderModule;
-}
-
-void TriangleApp::createRenderPass() {
-    VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = m_swapChainImageFormat;
-    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-    VkAttachmentReference colorAttachmentRef{};
-    colorAttachmentRef.attachment = 0;
-    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    // Depth Image
-    VkAttachmentDescription depthAttachment{};
-    depthAttachment.format = findDepthFormat();
-    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-    VkAttachmentReference depthAttachmentRef{};
-    depthAttachmentRef.attachment = 1;
-    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-    VkSubpassDescription subpass{};
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorAttachmentRef;
-    subpass.pDepthStencilAttachment = &depthAttachmentRef;
-
-    VkSubpassDependency dependency{}; // p.144f
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-    std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
-
-    VkRenderPassCreateInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-    renderPassInfo.pAttachments = attachments.data();
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
-
-    if(vkCreateRenderPass(m_device.device(), &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create render pass!");
-    }
 }
 
 void TriangleApp::createDescriptorSetLayout() {
@@ -392,14 +163,14 @@ void TriangleApp::createGraphicsPipeline() {
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(m_swapChainExtent.width);
-    viewport.height = static_cast<float>(m_swapChainExtent.height);
+    viewport.width = static_cast<float>(m_swapchain->extent().width);
+    viewport.height = static_cast<float>(m_swapchain->extent().height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = m_swapChainExtent;
+    scissor.extent = m_swapchain->extent();
 
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -483,7 +254,7 @@ void TriangleApp::createGraphicsPipeline() {
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = nullptr;
     pipelineInfo.layout = m_pipelineLayout;
-    pipelineInfo.renderPass = m_renderPass;
+    pipelineInfo.renderPass = m_swapchain->renderPass();
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineInfo.basePipelineIndex = -1;
@@ -496,29 +267,8 @@ void TriangleApp::createGraphicsPipeline() {
     vkDestroyShaderModule(m_device.device(), vertShaderModule, nullptr);
 }
 
-void TriangleApp::createFramebuffers() {
-    m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
-
-    for(size_t i = 0; i != m_swapChainImageViews.size(); ++i) {
-        std::array<VkImageView, 2> attachments = {m_swapChainImageViews[i], m_depthImageView};
-
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = m_renderPass;
-        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-        framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = m_swapChainExtent.width;
-        framebufferInfo.height = m_swapChainExtent.height;
-        framebufferInfo.layers = 1;
-
-        if(vkCreateFramebuffer(m_device.device(), &framebufferInfo, nullptr, &m_swapChainFramebuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create framebuffer!");
-        }
-    }
-}
-
 void TriangleApp::createCommandBuffers() {
-    m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+    m_commandBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -543,10 +293,10 @@ void TriangleApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t im
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = m_renderPass;
-    renderPassInfo.framebuffer = m_swapChainFramebuffers[imageIndex];
+    renderPassInfo.renderPass = m_swapchain->renderPass();
+    renderPassInfo.framebuffer = m_swapchain->frameBuffer(imageIndex);
     renderPassInfo.renderArea.offset = {0,0};
-    renderPassInfo.renderArea.extent = m_swapChainExtent;
+    renderPassInfo.renderArea.extent = m_swapchain->extent();
 
     std::array<VkClearValue, 2> clearValues{};
     clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
@@ -562,7 +312,8 @@ void TriangleApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t im
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSets[m_currentFrame], 0, nullptr);
+	// TODO: Move currentFrame() function from swapchain to renderer class?
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSets[m_swapchain->currentFrame()], 0, nullptr);
     
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
@@ -647,37 +398,6 @@ void TriangleApp::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSiz
 
 static bool hasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
-}
-
-VkFormat TriangleApp::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
-    for (VkFormat format : candidates) {
-        VkFormatProperties properties;
-        vkGetPhysicalDeviceFormatProperties(m_device.physicalDevice(), format, &properties);
-
-        if (tiling == VK_IMAGE_TILING_LINEAR && (properties.linearTilingFeatures & features) == features) {
-            return format;
-        } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (properties.optimalTilingFeatures & features) == features) {
-            return format;
-        }
-    }
-
-    throw std::runtime_error("Failed to find supported format!");
-}
-
-VkFormat TriangleApp::findDepthFormat() {
-    return findSupportedFormat(
-        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
-    );
-} 
-
-void TriangleApp::createDepthResources() {
-    VkFormat depthFormat = findDepthFormat();
-
-    createImage(m_swapChainExtent.width, m_swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
-    m_depthImageView = createImageView(m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 void TriangleApp::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
@@ -938,10 +658,10 @@ void TriangleApp::createIndexBuffer() {
 void TriangleApp::createUniformBuffers() {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-    m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-    m_uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+    m_uniformBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
+    m_uniformBuffersMemory.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
 
-    for(size_t i = 0; i != MAX_FRAMES_IN_FLIGHT; ++i) {
+    for(size_t i = 0; i != Swapchain::MAX_FRAMES_IN_FLIGHT; ++i) {
         createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i], m_uniformBuffersMemory[i]);
     }
@@ -950,15 +670,15 @@ void TriangleApp::createUniformBuffers() {
 void TriangleApp::createDescriptorPool() {
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[0].descriptorCount = static_cast<uint32_t>(Swapchain::MAX_FRAMES_IN_FLIGHT);
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[1].descriptorCount = static_cast<uint32_t>(Swapchain::MAX_FRAMES_IN_FLIGHT);
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolInfo.maxSets = static_cast<uint32_t>(Swapchain::MAX_FRAMES_IN_FLIGHT);
 
     if(vkCreateDescriptorPool(m_device.device(), &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create descriptor pool!");
@@ -966,20 +686,20 @@ void TriangleApp::createDescriptorPool() {
 }
 
 void TriangleApp::createDescriptorSets() {
-    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
+    std::vector<VkDescriptorSetLayout> layouts(Swapchain::MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
 
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = m_descriptorPool;
-    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(Swapchain::MAX_FRAMES_IN_FLIGHT);
     allocInfo.pSetLayouts = layouts.data();
 
-    m_descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+    m_descriptorSets.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
     if(vkAllocateDescriptorSets(m_device.device(), &allocInfo, m_descriptorSets.data()) != VK_SUCCESS) {
         throw std::runtime_error("Failed to allocate descriptor sets!");
     }
 
-    for(size_t i = 0; i != MAX_FRAMES_IN_FLIGHT; ++i) {
+    for(size_t i = 0; i != Swapchain::MAX_FRAMES_IN_FLIGHT; ++i) {
         VkDescriptorBufferInfo bufferInfo{};
         bufferInfo.buffer = m_uniformBuffers[i];
         bufferInfo.offset = 0;
@@ -1029,29 +749,6 @@ uint32_t TriangleApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags 
     throw std::runtime_error("Failed to find suitable memory type!");
 }
 
-void TriangleApp::createSyncObjects() {
-    m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-    VkSemaphoreCreateInfo semaphoreInfo{};
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-    VkFenceCreateInfo fenceInfo{};
-    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // Immediately signaled so we can draw first frame (p.141)
-
-    for(size_t i = 0; i != MAX_FRAMES_IN_FLIGHT; ++i) {
-        if(vkCreateSemaphore(m_device.device(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS
-            || vkCreateSemaphore(m_device.device(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS
-            || vkCreateFence(m_device.device(), &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS)
-        {
-            throw std::runtime_error("Failed to create semaphores!");
-        }
-    }
-    
-}
-
 void TriangleApp::run() {
 	while(!m_window.shouldClose()) {
         glfwPollEvents();
@@ -1061,70 +758,48 @@ void TriangleApp::run() {
     vkDeviceWaitIdle(m_device.device());
 }
 
+void TriangleApp::recreateSwapchain() {
+	// TODO: Pass old swapchain to new object to be copied and then delete it.
+	// Swapchain* oldSwapchain = m_swapchain.release();
+	// m_swapchain.reset(nullptr);
+	// m_swapchain = std::make_unique<Swapchain>(m_window, m_device, oldSwapchain);
+
+	m_window.stopWhileMinimized();
+	vkDeviceWaitIdle(m_device.device());
+
+	m_swapchain.reset(nullptr);
+	m_swapchain = std::make_unique<Swapchain>(m_window, m_device);
+
+	vkDestroyPipeline(m_device.device(), m_graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(m_device.device(), m_pipelineLayout, nullptr);
+	createGraphicsPipeline();
+}
+
 void TriangleApp::drawFrame() {
-    // Make sure only one image is added to the command buffer at once. (p.137ff)
-    vkWaitForFences(m_device.device(), 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
-
+	// Get next swapchain image
     uint32_t imageIndex = -1;
-    VkResult result = vkAcquireNextImageKHR(m_device.device(), m_swapChain, UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+	VkResult result = m_swapchain->getNextImage(imageIndex);
+	if(result == VK_ERROR_OUT_OF_DATE_KHR) {
+		recreateSwapchain();
+		return;
+	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		// Suboptimal swap chain is also ok.. Recreate after presenting the image.
+		throw std::runtime_error("Failed to acquire swap chain image!");
+	}
 
-    if(result == VK_ERROR_OUT_OF_DATE_KHR) {
-        recreateSwapChain();
-        return;
-    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        // Suboptimal swap chain is also ok.. Recreate after presenting the image.
-        throw std::runtime_error("Failed to acquire swap chain image!");
-    }
+	// Update uniform buffers
+    updateUniformBuffer(m_swapchain->currentFrame());
 
-    updateUniformBuffer(m_currentFrame);
+	vkResetCommandBuffer(m_commandBuffers[m_swapchain->currentFrame()], 0);
+	recordCommandBuffer(m_commandBuffers[m_swapchain->currentFrame()], imageIndex);
 
-    // Only reset if we are submitting work.. Otherwise could cause deadlock
-    vkResetFences(m_device.device(), 1, &m_inFlightFences[m_currentFrame]);
-
-    vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
-    recordCommandBuffer(m_commandBuffers[m_currentFrame], imageIndex);
-
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    
-    VkSemaphore waitSemaphores[] = {m_imageAvailableSemaphores[m_currentFrame]};
-    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_commandBuffers[m_currentFrame];
-
-    VkSemaphore signalSemaphores[] = {m_renderFinishedSemaphores[m_currentFrame]};
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
-
-    if(vkQueueSubmit(m_device.graphicsQueue(), 1, &submitInfo, m_inFlightFences[m_currentFrame]) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to submit draw command buffer!");
-    }
-
-    // Presentation
-    VkPresentInfoKHR presentInfo{};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
-
-    VkSwapchainKHR swapChains[] = {m_swapChain};
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
-    presentInfo.pImageIndices = &imageIndex;
-    presentInfo.pResults = nullptr;
-
-    result = vkQueuePresentKHR(m_device.presentQueue(), &presentInfo);
-
-    if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_framebufferResized) {
-        m_framebufferResized = false;
-        recreateSwapChain();
-    } else if (result != VK_SUCCESS) {
-        throw std::runtime_error("Failed to present swap chain image!");
-    }
-
-    m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+	// Submit command buffer
+	result = m_swapchain->submitCommandBuffer(m_commandBuffers[m_swapchain->currentFrame()], imageIndex);
+	if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_window.resized()) {
+		recreateSwapchain();
+	} else if (result != VK_SUCCESS) {
+		throw std::runtime_error("Failed to present swap chain image!");
+	}
 }
 
 void TriangleApp::updateUniformBuffer(uint32_t currentImage) {
@@ -1136,7 +811,7 @@ void TriangleApp::updateUniformBuffer(uint32_t currentImage) {
     UniformBufferObject ubo{};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / static_cast<float>(m_swapChainExtent.height), 0.1f, 10.0f);
+    ubo.proj = glm::perspective(glm::radians(45.0f), m_swapchain->extent().width / static_cast<float>(m_swapchain->extent().height), 0.1f, 10.0f);
 
     ubo.proj[1][1] *= -1;  // Invert the y-coordinate of clip coordinate because glm was designed for OpenGL
 
@@ -1148,9 +823,10 @@ void TriangleApp::updateUniformBuffer(uint32_t currentImage) {
 }
 
 TriangleApp::~TriangleApp() {
-    cleanupSwapChain();
+	vkDestroyPipeline(m_device.device(), m_graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(m_device.device(), m_pipelineLayout, nullptr);
 
-    // Texture Sampler
+	// Texture Sampler
     vkDestroySampler(m_device.device(), m_textureSampler, nullptr);
 
     // Image
@@ -1158,7 +834,7 @@ TriangleApp::~TriangleApp() {
     vkDestroyImage(m_device.device(), m_textureImage, nullptr);
     vkFreeMemory(m_device.device(), m_textureImageMemory, nullptr);
 
-    for(size_t i = 0; i != MAX_FRAMES_IN_FLIGHT; ++i) {
+    for(size_t i = 0; i != Swapchain::MAX_FRAMES_IN_FLIGHT; ++i) {
         vkDestroyBuffer(m_device.device(), m_uniformBuffers[i], nullptr);
         vkFreeMemory(m_device.device(), m_uniformBuffersMemory[i], nullptr);
     }
@@ -1171,10 +847,4 @@ TriangleApp::~TriangleApp() {
 
     vkDestroyBuffer(m_device.device(), m_vertexBuffer, nullptr);
     vkFreeMemory(m_device.device(), m_vertexBufferMemory, nullptr);
-
-    for(size_t i = 0; i != MAX_FRAMES_IN_FLIGHT; ++i) {
-        vkDestroySemaphore(m_device.device(), m_imageAvailableSemaphores[i], nullptr);
-        vkDestroySemaphore(m_device.device(), m_renderFinishedSemaphores[i], nullptr);
-        vkDestroyFence(m_device.device(), m_inFlightFences[i], nullptr);
-    }
 }

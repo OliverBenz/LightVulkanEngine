@@ -4,9 +4,11 @@
 #include <vector>
 #include <string>
 #include <optional>
+#include <memory>
 
 #include "device.hpp"
 #include "window.hpp"
+#include "swapchain.hpp"
 #include "vertex.hpp"
 
 // TODO: Add chapters
@@ -22,24 +24,11 @@ public:
 private:
     void initWindow();
 
-    void createLogicalDevice();
-
-    void createSwapChain();
-    void cleanupSwapChain();
-    void recreateSwapChain(); // If window surface changes for example..
-    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-    
-    void createImageViews();
     VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-    void createRenderPass();
     void createDescriptorSetLayout();
     void createGraphicsPipeline();
     VkShaderModule createShadersModule(const std::vector<char>& code);
 
-    void createFramebuffers();
     void createVertexBuffer();
     void createIndexBuffer();
     void createUniformBuffers();
@@ -70,34 +59,20 @@ private:
     // Texture sampler
     void createTextureSampler();
 
-    // Depth Image
-    void createDepthResources();
-    VkFormat findDepthFormat();
-    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-
 	// Model
 	void loadModel();
+
+	// To be moved to renderer
+	void recreateSwapchain();
 
 private:
     static constexpr int WIDTH = 800;
     static constexpr int HEIGHT = 600;
 
-    //! How many images to work on at the same time.
-    // TODO: Make this constexpr and use std::array instead of std::vector to contain all data.
-    const int MAX_FRAMES_IN_FLIGHT = 2;
-    uint32_t m_currentFrame = 0;
-
     Window m_window{WIDTH, HEIGHT, "Vulkan"};
     Device m_device{m_window};
+	std::unique_ptr<Swapchain> m_swapchain;
 
-	VkSwapchainKHR m_swapChain;
-    std::vector<VkImage> m_swapChainImages;
-    VkFormat m_swapChainImageFormat;
-    VkExtent2D m_swapChainExtent;
-    std::vector<VkImageView> m_swapChainImageViews;
-    std::vector<VkFramebuffer> m_swapChainFramebuffers;
-
-    VkRenderPass m_renderPass;
     VkDescriptorPool m_descriptorPool;
     std::vector<VkDescriptorSet> m_descriptorSets;
     VkDescriptorSetLayout m_descriptorSetLayout;
@@ -116,11 +91,6 @@ private:
     std::vector<VkBuffer> m_uniformBuffers;
     std::vector<VkDeviceMemory> m_uniformBuffersMemory;
 
-    // Sync objects
-    std::vector<VkSemaphore> m_imageAvailableSemaphores;
-    std::vector<VkSemaphore> m_renderFinishedSemaphores;
-    std::vector<VkFence> m_inFlightFences;
-
     // Image
     VkImage m_textureImage;
     VkDeviceMemory m_textureImageMemory;
@@ -129,17 +99,9 @@ private:
     // Texture Sampler
     VkSampler m_textureSampler;
 
-    // Depth Image
-    VkImage m_depthImage;
-    VkDeviceMemory m_depthImageMemory;
-    VkImageView m_depthImageView;
-
 	// Module
 	const std::string m_pathModel = "../resources/models/viking_room.obj";
 	const std::string m_pathTexture = "../resources/textures/viking_room.png";
 	std::vector<Vertex> m_vertices;
 	std::vector<uint32_t> m_indices;
-
-public:
-    bool m_framebufferResized = false;
 };

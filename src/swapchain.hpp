@@ -4,17 +4,28 @@
 #include <vector>
 
 #include "device.hpp"
+#include "window.hpp"
 
 class Swapchain {
 public:
-	Swapchain(Device& device);
+	Swapchain(Window& window, Device& device);
 	~Swapchain();
+
+	VkExtent2D extent();
+	uint32_t currentFrame();
+	VkRenderPass renderPass();
+	VkFramebuffer frameBuffer(uint32_t imageIndex);
+
+	//! Get the next image and write image index to variable.
+	VkResult getNextImage(uint32_t& imageIndex);
+
+	// TODO: Move this function to renderer?
+	//! Submit a command buffer to the graphics queue.
+	VkResult submitCommandBuffer(VkCommandBuffer& commandBuffer, uint32_t& imageIndex);
 
 private:
 	void createSwapChain();
-	void cleanupSwapChain();
 	void createImageViews();
-	void recreateSwapChain();
 	void createRenderPass();
 	void createDepthResources();
 	void createFramebuffers();
@@ -29,14 +40,18 @@ private:
 	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+	void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+					 VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 
-private:
+public:
 	//! How many images to work on at the same time.
 	static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
+private:
 	uint32_t m_currentFrame = 0;
 
 	// Owned by application
+	Window& m_window;
 	Device& m_device;
 
 	VkSwapchainKHR m_swapChain;
