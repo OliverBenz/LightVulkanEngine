@@ -12,7 +12,7 @@ Swapchain::Swapchain(Window& window, Device& device) : m_window(window), m_devic
 }
 
 VkExtent2D Swapchain::extent() {
-	return m_swapChainExtent;
+	return m_extent;
 }
 
 uint32_t Swapchain::currentFrame() {
@@ -24,7 +24,7 @@ VkRenderPass Swapchain::renderPass() {
 }
 
 VkFramebuffer Swapchain::frameBuffer(uint32_t imageIndex) {
-	return m_swapChainFramebuffers[imageIndex];
+	return m_framebuffers[imageIndex];
 }
 
 VkResult Swapchain::getNextImage(uint32_t& imageIndex) {
@@ -125,12 +125,12 @@ void Swapchain::createSwapChain() {
 
 	// Get swap chain images
 	vkGetSwapchainImagesKHR(m_device.device(), m_swapChain, &imageCount, nullptr);
-	m_swapChainImages.resize(imageCount);
-	vkGetSwapchainImagesKHR(m_device.device(), m_swapChain, &imageCount, m_swapChainImages.data());
+	m_images.resize(imageCount);
+	vkGetSwapchainImagesKHR(m_device.device(), m_swapChain, &imageCount, m_images.data());
 
 	// Store swapchain data
-	m_swapChainImageFormat = surfaceFormat.format;
-	m_swapChainExtent = extent;
+	m_imageFormat = surfaceFormat.format;
+	m_extent = extent;
 }
 
 VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
@@ -170,7 +170,7 @@ VkExtent2D Swapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilit
 
 void Swapchain::createRenderPass() {
 	VkAttachmentDescription colorAttachment{};
-	colorAttachment.format = m_swapChainImageFormat;
+	colorAttachment.format = m_imageFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -230,21 +230,21 @@ void Swapchain::createRenderPass() {
 
 
 void Swapchain::createFramebuffers() {
-	m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
+	m_framebuffers.resize(m_imageViews.size());
 
-	for(size_t i = 0; i != m_swapChainImageViews.size(); ++i) {
-		std::array<VkImageView, 2> attachments = {m_swapChainImageViews[i], m_depthImageView};
+	for(size_t i = 0; i != m_imageViews.size(); ++i) {
+		std::array<VkImageView, 2> attachments = {m_imageViews[i], m_depthImageView};
 
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass = m_renderPass;
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		framebufferInfo.pAttachments = attachments.data();
-		framebufferInfo.width = m_swapChainExtent.width;
-		framebufferInfo.height = m_swapChainExtent.height;
+		framebufferInfo.width = m_extent.width;
+		framebufferInfo.height = m_extent.height;
 		framebufferInfo.layers = 1;
 
-		if(vkCreateFramebuffer(m_device.device(), &framebufferInfo, nullptr, &m_swapChainFramebuffers[i]) != VK_SUCCESS) {
+		if(vkCreateFramebuffer(m_device.device(), &framebufferInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create framebuffer!");
 		}
 	}
@@ -299,10 +299,10 @@ VkImageView Swapchain::createImageView(VkImage image, VkFormat format, VkImageAs
 }
 
 void Swapchain::createImageViews() {
-	m_swapChainImageViews.resize(m_swapChainImages.size());
+	m_imageViews.resize(m_images.size());
 
-	for(size_t i = 0; i != m_swapChainImages.size(); ++i) {
-		m_swapChainImageViews[i] = createImageView(m_swapChainImages[i], m_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+	for(size_t i = 0; i != m_images.size(); ++i) {
+		m_imageViews[i] = createImageView(m_images[i], m_imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 }
 
@@ -332,7 +332,7 @@ VkFormat Swapchain::findDepthFormat() {
 void Swapchain::createDepthResources() {
 	VkFormat depthFormat = findDepthFormat();
 
-	createImage(m_swapChainExtent.width, m_swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+	createImage(m_extent.width, m_extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
 	m_depthImageView = createImageView(m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
@@ -382,12 +382,12 @@ Swapchain::~Swapchain() {
 	vkDestroyImage(m_device.device(), m_depthImage, nullptr);
 	vkFreeMemory(m_device.device(), m_depthImageMemory, nullptr);
 
-	for(auto framebuffer : m_swapChainFramebuffers) {
+	for(auto framebuffer : m_framebuffers) {
 		vkDestroyFramebuffer(m_device.device(), framebuffer, nullptr);
 	}
 	vkDestroyRenderPass(m_device.device(), m_renderPass, nullptr);
 
-	for(auto imageView : m_swapChainImageViews) {
+	for(auto imageView : m_imageViews) {
 		vkDestroyImageView(m_device.device(), imageView, nullptr);
 	}
 	vkDestroySwapchainKHR(m_device.device(), m_swapChain, nullptr);

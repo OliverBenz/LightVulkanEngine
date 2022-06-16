@@ -57,13 +57,13 @@ private:
 	VkSwapchainKHR m_swapChain;
 	VkRenderPass m_renderPass;
 
-	VkFormat m_swapChainImageFormat;
-	VkExtent2D m_swapChainExtent;
+	VkFormat m_imageFormat;
+	VkExtent2D m_extent;
 
 	// TODO: Refactor
-	std::vector<VkImage> m_swapChainImages;
-	std::vector<VkImageView> m_swapChainImageViews;
-	std::vector<VkFramebuffer> m_swapChainFramebuffers;
+	std::vector<VkImage> m_images;
+	std::vector<VkImageView> m_imageViews;
+	std::vector<VkFramebuffer> m_framebuffers;
 
 	// Depth Image
 	VkImage m_depthImage;
