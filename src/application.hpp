@@ -14,10 +14,10 @@
 // TODO: Add chapters
 //  - Callback messages (52ff)
 //  - Debugging instance creation and destruction (57ff)
-class TriangleApp {
+class Application {
 public:
-    TriangleApp();
-    ~TriangleApp();
+    Application();
+    ~Application();
 
     void run();
 

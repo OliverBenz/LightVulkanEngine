@@ -39,7 +39,7 @@ static std::vector<char> readFile(const std::string& filename) {
 }
 
 
-TriangleApp::TriangleApp() : m_swapchain(std::make_unique<Swapchain>(m_window, m_device)) {
+Application::Application() : m_swapchain(std::make_unique<Swapchain>(m_window, m_device)) {
 	// NOTE: These two before the framebuffers in swapchain?
 	createDescriptorSetLayout();
 	createGraphicsPipeline();
@@ -56,7 +56,7 @@ TriangleApp::TriangleApp() : m_swapchain(std::make_unique<Swapchain>(m_window, m
 	createCommandBuffers();
 }
 
-VkImageView TriangleApp::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
+VkImageView Application::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
     VkImageViewCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     createInfo.image = image;
@@ -82,7 +82,7 @@ VkImageView TriangleApp::createImageView(VkImage image, VkFormat format, VkImage
     return imageView;
 }
 
-VkShaderModule TriangleApp::createShadersModule(const std::vector<char>& code) {
+VkShaderModule Application::createShadersModule(const std::vector<char>& code) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = code.size();
@@ -96,7 +96,7 @@ VkShaderModule TriangleApp::createShadersModule(const std::vector<char>& code) {
     return shaderModule;
 }
 
-void TriangleApp::createDescriptorSetLayout() {
+void Application::createDescriptorSetLayout() {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -123,7 +123,7 @@ void TriangleApp::createDescriptorSetLayout() {
     }
 }
 
-void TriangleApp::createGraphicsPipeline() {
+void Application::createGraphicsPipeline() {
     auto vertShaderCode = readFile("../resources/shaders/vert.spv");
     auto fragShaderCode = readFile("../resources/shaders/frag.spv");
 
@@ -267,7 +267,7 @@ void TriangleApp::createGraphicsPipeline() {
     vkDestroyShaderModule(m_device.device(), vertShaderModule, nullptr);
 }
 
-void TriangleApp::createCommandBuffers() {
+void Application::createCommandBuffers() {
     m_commandBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -281,7 +281,7 @@ void TriangleApp::createCommandBuffers() {
     }
 }
 
-void TriangleApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = 0;
@@ -323,7 +323,7 @@ void TriangleApp::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t im
     }
 }
 
-void TriangleApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+void Application::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
     VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
     VkBufferCreateInfo bufferInfo{};
@@ -352,7 +352,7 @@ void TriangleApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMe
     vkBindBufferMemory(m_device.device(), buffer, bufferMemory, 0);
 }
 
-VkCommandBuffer TriangleApp::beginSingleTimeCommands() {
+VkCommandBuffer Application::beginSingleTimeCommands() {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -371,7 +371,7 @@ VkCommandBuffer TriangleApp::beginSingleTimeCommands() {
     return commandBuffer;
 }
 
-void TriangleApp::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+void Application::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo{};
@@ -385,7 +385,7 @@ void TriangleApp::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
     vkFreeCommandBuffers(m_device.device(), m_device.commandPool(), 1, &commandBuffer);
 }
 
-void TriangleApp::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+void Application::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
     VkBufferCopy copyRegion{};
@@ -400,7 +400,7 @@ static bool hasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-void TriangleApp::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+void Application::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
     VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 {
     // Create vulkan image
@@ -439,7 +439,7 @@ void TriangleApp::createImage(uint32_t width, uint32_t height, VkFormat format, 
     vkBindImageMemory(m_device.device(), image, imageMemory, 0);
 }
 
-void TriangleApp::createTextureImage() {
+void Application::createTextureImage() {
     // Read image
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(m_pathTexture.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -478,7 +478,7 @@ void TriangleApp::createTextureImage() {
     vkFreeMemory(m_device.device(), stagingBufferMemory, nullptr);
 }
 
-void TriangleApp::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+void Application::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
     VkImageMemoryBarrier barrier{};
@@ -519,7 +519,7 @@ void TriangleApp::transitionImageLayout(VkImage image, VkFormat format, VkImageL
     endSingleTimeCommands(commandBuffer);
 }
 
-void TriangleApp::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+void Application::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
     VkBufferImageCopy region{};
@@ -540,11 +540,11 @@ void TriangleApp::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t wid
     endSingleTimeCommands(commandBuffer);
 }
 
-void TriangleApp::createTextureImageView() {
+void Application::createTextureImageView() {
     m_textureImageView = createImageView(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
-void TriangleApp::createTextureSampler() {
+void Application::createTextureSampler() {
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -572,7 +572,7 @@ void TriangleApp::createTextureSampler() {
     }
 }
 
-void TriangleApp::loadModel() {
+void Application::loadModel() {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -607,7 +607,7 @@ void TriangleApp::loadModel() {
 	}
 }
 
-void TriangleApp::createVertexBuffer() {
+void Application::createVertexBuffer() {
     VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
 
     // Host local staging buffer
@@ -631,7 +631,7 @@ void TriangleApp::createVertexBuffer() {
     vkFreeMemory(m_device.device(), stagingBufferMemory, nullptr);
 }
 
-void TriangleApp::createIndexBuffer() {
+void Application::createIndexBuffer() {
     VkDeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
 
     // Host local staging buffer
@@ -655,7 +655,7 @@ void TriangleApp::createIndexBuffer() {
     vkFreeMemory(m_device.device(), stagingBufferMemory, nullptr);
 }
 
-void TriangleApp::createUniformBuffers() {
+void Application::createUniformBuffers() {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
     m_uniformBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
@@ -667,7 +667,7 @@ void TriangleApp::createUniformBuffers() {
     }
 }
 
-void TriangleApp::createDescriptorPool() {
+void Application::createDescriptorPool() {
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = static_cast<uint32_t>(Swapchain::MAX_FRAMES_IN_FLIGHT);
@@ -685,7 +685,7 @@ void TriangleApp::createDescriptorPool() {
     }
 }
 
-void TriangleApp::createDescriptorSets() {
+void Application::createDescriptorSets() {
     std::vector<VkDescriptorSetLayout> layouts(Swapchain::MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
 
     VkDescriptorSetAllocateInfo allocInfo{};
@@ -735,7 +735,7 @@ void TriangleApp::createDescriptorSets() {
     }
 }
 
-uint32_t TriangleApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t Application::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties memProperties{};
     vkGetPhysicalDeviceMemoryProperties(m_device.physicalDevice(), &memProperties);
 
@@ -749,7 +749,7 @@ uint32_t TriangleApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags 
     throw std::runtime_error("Failed to find suitable memory type!");
 }
 
-void TriangleApp::run() {
+void Application::run() {
 	while(!m_window.shouldClose()) {
         glfwPollEvents();
         drawFrame();
@@ -758,7 +758,7 @@ void TriangleApp::run() {
     vkDeviceWaitIdle(m_device.device());
 }
 
-void TriangleApp::recreateSwapchain() {
+void Application::recreateSwapchain() {
 	// TODO: Pass old swapchain to new object to be copied and then delete it.
 	// Swapchain* oldSwapchain = m_swapchain.release();
 	// m_swapchain.reset(nullptr);
@@ -775,7 +775,7 @@ void TriangleApp::recreateSwapchain() {
 	createGraphicsPipeline();
 }
 
-void TriangleApp::drawFrame() {
+void Application::drawFrame() {
 	// Get next swapchain image
     uint32_t imageIndex = -1;
 	VkResult result = m_swapchain->getNextImage(imageIndex);
@@ -802,7 +802,7 @@ void TriangleApp::drawFrame() {
 	}
 }
 
-void TriangleApp::updateUniformBuffer(uint32_t currentImage) {
+void Application::updateUniformBuffer(uint32_t currentImage) {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
@@ -822,7 +822,7 @@ void TriangleApp::updateUniformBuffer(uint32_t currentImage) {
     vkUnmapMemory(m_device.device(), m_uniformBuffersMemory[currentImage]);
 }
 
-TriangleApp::~TriangleApp() {
+Application::~Application() {
 	vkDestroyPipeline(m_device.device(), m_graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(m_device.device(), m_pipelineLayout, nullptr);
 
