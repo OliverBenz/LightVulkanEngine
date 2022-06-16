@@ -10,6 +10,8 @@
 #include "window.hpp"
 #include "swapchain.hpp"
 #include "vertex.hpp"
+#include "model.hpp"
+#include "buffer.hpp"
 
 // TODO: Add chapters
 //  - Callback messages (52ff)
@@ -29,8 +31,6 @@ private:
     void createGraphicsPipeline();
     VkShaderModule createShadersModule(const std::vector<char>& code);
 
-    void createVertexBuffer();
-    void createIndexBuffer();
     void createUniformBuffers();
     void createDescriptorPool();
     void createDescriptorSets();
@@ -44,7 +44,6 @@ private:
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-    void createSyncObjects();
     void drawFrame();
     void updateUniformBuffer(uint32_t currentImage);
 
@@ -59,9 +58,6 @@ private:
     // Texture sampler
     void createTextureSampler();
 
-	// Model
-	void loadModel();
-
 	// To be moved to renderer
 	void recreateSwapchain();
 
@@ -71,7 +67,7 @@ private:
 
     Window m_window{WIDTH, HEIGHT, "Vulkan"};
     Device m_device{m_window};
-	std::unique_ptr<Swapchain> m_swapchain;
+	std::unique_ptr<Swapchain> m_swapchain{std::make_unique<Swapchain>(m_window, m_device)};
 
     VkDescriptorPool m_descriptorPool;
     std::vector<VkDescriptorSet> m_descriptorSets;
@@ -82,12 +78,6 @@ private:
     // Buffers
     std::vector<VkCommandBuffer> m_commandBuffers;
     
-    VkBuffer m_vertexBuffer;
-    VkDeviceMemory m_vertexBufferMemory;
-    
-    VkBuffer m_indexBuffer;
-    VkDeviceMemory m_indexBufferMemory;
-
     std::vector<VkBuffer> m_uniformBuffers;
     std::vector<VkDeviceMemory> m_uniformBuffersMemory;
 
@@ -99,9 +89,7 @@ private:
     // Texture Sampler
     VkSampler m_textureSampler;
 
-	// Module
-	const std::string m_pathModel = "../resources/models/viking_room.obj";
-	const std::string m_pathTexture = "../resources/textures/viking_room.png";
-	std::vector<Vertex> m_vertices;
-	std::vector<uint32_t> m_indices;
+	// Model
+	Model m_modelViking{"../resources/models/viking_room.obj","../resources/textures/viking_room.png"};
+	Buffer m_buffer{m_device, m_modelViking};
 };

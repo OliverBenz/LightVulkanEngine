@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <array>
+#include <vulkan/vulkan.hpp>
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
