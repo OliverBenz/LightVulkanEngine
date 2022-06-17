@@ -9,7 +9,6 @@
 Application::Application() {
 	// NOTE: These two before the framebuffers in swapchain?
 	createDescriptorSetLayout();
-	createGraphicsPipeline();
 
 	createUniformBuffers();
 	createDescriptorPool();
@@ -44,75 +43,7 @@ void Application::createDescriptorSetLayout() {
     }
 }
 
-void Application::createGraphicsPipeline() {
-	PipelineInfo pipelineInfo{};
-	pipelineInfo.extent = m_swapchain->extent();
-	pipelineInfo.descriptorSetLayout = &m_descriptorSetLayout;
-	pipelineInfo.renderPass = m_swapchain->renderPass();
 
-	m_graphicsPipeline = std::make_unique<Pipeline>(m_device,m_pathVertexShader,
-													m_pathFragmentShader, pipelineInfo);
-};
-
-void Application::createCommandBuffers() {
-    m_commandBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
-
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = m_device.commandPool();
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
-
-    if(vkAllocateCommandBuffers(m_device.device(), &allocInfo, m_commandBuffers.data()) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to allocate command buffers!");
-    }
-}
-
-void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = 0;
-    beginInfo.pInheritanceInfo = nullptr;
-
-    if(vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to begin recording command buffer!");
-    }
-
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = m_swapchain->renderPass();
-    renderPassInfo.framebuffer = m_swapchain->frameBuffer(imageIndex);
-    renderPassInfo.renderArea.offset = {0,0};
-    renderPassInfo.renderArea.extent = m_swapchain->extent();
-
-    std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-    clearValues[1].depthStencil = {1.0f, 0};
-
-    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-    renderPassInfo.pClearValues = clearValues.data();
-
-    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-	m_graphicsPipeline->bind(commandBuffer);
-	// Bind vertex/index buffers to command buffer
-	// TODO: Move currentFrame() function from swapchain to renderer class?
-	m_modelViking.bind(commandBuffer);
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline->layout(), 0, 1, &m_descriptorSets[m_swapchain->currentFrame()], 0, nullptr);
-
-	updateUniformBuffer(m_swapchain->currentFrame(), {1.0f, 0.0f, 0.0f});
-    m_modelViking.draw(commandBuffer);
-
-	// TODO: Why is it only drawn once??
-	updateUniformBuffer(m_swapchain->currentFrame(), {0.0f, 0.0f, 0.0f});
-	m_modelViking.draw(commandBuffer);
-
-    vkCmdEndRenderPass(commandBuffer);
-
-    if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to record command buffer!");
-    }
-}
 
 void Application::createUniformBuffers() {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
@@ -197,49 +128,58 @@ void Application::createDescriptorSets() {
 void Application::run() {
 	while(!m_window.shouldClose()) {
         glfwPollEvents();
-        drawFrame();
+
+		m_renderer.beginFrame();
+		recordCommandBuffer(m_renderer.commandBuffer(), m_renderer.currentImageIndex());
+		m_renderer.endFrame();
     }
 
     vkDeviceWaitIdle(m_device.device());
 }
 
-void Application::recreateSwapchain() {
-	// TODO: Pass old swapchain to new object to be copied and then delete it.
-	// Swapchain* oldSwapchain = m_swapchain.release();
-	// m_swapchain.reset(nullptr);
-	// m_swapchain = std::make_unique<Swapchain>(m_window, m_device, oldSwapchain);
+void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = 0;
+	beginInfo.pInheritanceInfo = nullptr;
 
-	m_window.stopWhileMinimized();
-	vkDeviceWaitIdle(m_device.device());
-
-	m_swapchain.reset(nullptr);
-	m_swapchain = std::make_unique<Swapchain>(m_window, m_device);
-
-	m_graphicsPipeline.reset(nullptr);
-	createGraphicsPipeline();
-}
-
-void Application::drawFrame() {
-	// Get next swapchain image
-    uint32_t imageIndex = -1;
-	VkResult result = m_swapchain->getNextImage(imageIndex);
-	if(result == VK_ERROR_OUT_OF_DATE_KHR) {
-		recreateSwapchain();
-		return;
-	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-		// Suboptimal swap chain is also ok.. Recreate after presenting the image.
-		throw std::runtime_error("Failed to acquire swap chain image!");
+	if(vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to begin recording command buffer!");
 	}
 
-	vkResetCommandBuffer(m_commandBuffers[m_swapchain->currentFrame()], 0);
-	recordCommandBuffer(m_commandBuffers[m_swapchain->currentFrame()], imageIndex);
+	VkRenderPassBeginInfo renderPassInfo{};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.renderPass = m_swapchain->renderPass();
+	renderPassInfo.framebuffer = m_swapchain->frameBuffer(imageIndex);
+	renderPassInfo.renderArea.offset = {0,0};
+	renderPassInfo.renderArea.extent = m_swapchain->extent();
 
-	// Submit command buffer
-	result = m_swapchain->submitCommandBuffer(m_commandBuffers[m_swapchain->currentFrame()], imageIndex);
-	if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_window.resized()) {
-		recreateSwapchain();
-	} else if (result != VK_SUCCESS) {
-		throw std::runtime_error("Failed to present swap chain image!");
+	std::array<VkClearValue, 2> clearValues{};
+	clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+	clearValues[1].depthStencil = {1.0f, 0};
+
+	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassInfo.pClearValues = clearValues.data();
+
+	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	m_graphicsPipeline->bind(commandBuffer);
+	// Bind vertex/index buffers to command buffer
+	// TODO: Move currentFrame() function from swapchain to renderer class?
+	m_modelViking.bind(commandBuffer);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline->layout(), 0, 1, &m_descriptorSets[m_swapchain->currentFrame()], 0, nullptr);
+
+	updateUniformBuffer(m_swapchain->currentFrame(), {1.0f, 0.0f, 0.0f});
+	m_modelViking.draw(commandBuffer);
+
+	// TODO: Why is it only drawn once??
+	updateUniformBuffer(m_swapchain->currentFrame(), {0.0f, 0.0f, 0.0f});
+	m_modelViking.draw(commandBuffer);
+
+	vkCmdEndRenderPass(commandBuffer);
+
+	if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to record command buffer!");
 	}
 }
 
