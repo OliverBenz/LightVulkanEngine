@@ -16,31 +16,31 @@ Device::Device(Window& window) : m_window(window) {
 	}
 }
 
-bool Device::validationLayersEnabled() {
+bool Device::validationLayersEnabled() const {
 	return m_enableValidationLayers;
 }
 
-VkDevice Device::device() {
+VkDevice Device::device() const {
 	return m_device;
 }
 
-VkPhysicalDevice Device::physicalDevice() {
+VkPhysicalDevice Device::physicalDevice() const {
 	return m_physicalDevice;
 }
 
-VkSurfaceKHR Device::surface() {
+VkSurfaceKHR Device::surface() const {
 	return m_surface;
 }
 
-VkCommandPool Device::commandPool() {
+VkCommandPool Device::commandPool() const {
 	return m_commandPool;
 }
 
-VkQueue Device::graphicsQueue() {
+VkQueue Device::graphicsQueue() const {
 	return m_graphicsQueue;
 }
 
-VkQueue Device::presentQueue() {
+VkQueue Device::presentQueue() const {
 	return m_presentQueue;
 }
 
@@ -170,7 +170,7 @@ void Device::createLogicalDevice() {
 	vkGetDeviceQueue(m_device, indices.presentFamily.value(), 0, &m_presentQueue);
 }
 
-bool Device::isDeviceSuitable(VkPhysicalDevice device) {
+bool Device::isDeviceSuitable(VkPhysicalDevice device) const {
 	/*
 	// Example: We need a GPU that supports geometry shaders
 	VkPhysicalDeviceProperties deviceProperties;
@@ -201,7 +201,7 @@ bool Device::isDeviceSuitable(VkPhysicalDevice device) {
 	return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-bool Device::checkDeviceExtensionSupport(VkPhysicalDevice device) {
+bool Device::checkDeviceExtensionSupport(VkPhysicalDevice device) const {
 	uint32_t extensionCount = 0;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
@@ -217,11 +217,11 @@ bool Device::checkDeviceExtensionSupport(VkPhysicalDevice device) {
 	return requiredExtensions.empty();
 }
 
-QueueFamilyIndices Device::findQueueFamilies() {
+QueueFamilyIndices Device::findQueueFamilies() const {
 	return findQueueFamilies(m_physicalDevice);
 }
 
-QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) {
+QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) const {
 	uint32_t queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
@@ -256,7 +256,7 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) {
 	return indices;
 }
 
-SwapChainSupportDetails Device::getSwapChainSupport(VkPhysicalDevice device) {
+SwapChainSupportDetails Device::getSwapChainSupport(VkPhysicalDevice device) const {
 	SwapChainSupportDetails details;
 
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface, &details.capabilities);
@@ -278,7 +278,7 @@ SwapChainSupportDetails Device::getSwapChainSupport(VkPhysicalDevice device) {
 	return details;
 }
 
-bool Device::checkValidationLayerSupport() {
+bool Device::checkValidationLayerSupport() const {
 	// Get all supported validation layers
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -318,7 +318,7 @@ void Device::createCommandPool() {
 	}
 }
 
-uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const {
 	VkPhysicalDeviceMemoryProperties memProperties{};
 	vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
 

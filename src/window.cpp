@@ -11,11 +11,11 @@ Window::Window(int width, int height, const std::string& name) : m_width(width),
 	glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
 }
 
-GLFWwindow* Window::handle() {
+GLFWwindow* Window::handle() const {
 	return m_window;
 }
 
-VkExtent2D Window::extent() {
+VkExtent2D Window::extent() const {
 	return {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)};
 }
 
@@ -26,15 +26,15 @@ void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height
 	win->m_height = height;
 }
 
-bool Window::shouldClose() {
+bool Window::shouldClose() const {
 	return glfwWindowShouldClose(m_window);
 }
 
-void Window::update() {
+void Window::update() const {
 	glfwPollEvents();
 }
 
-void Window::stopWhileMinimized() {
+void Window::stopWhileMinimized() const {
 	int width = 0, height = 0;
 	glfwGetFramebufferSize(m_window, &width, &height);
 

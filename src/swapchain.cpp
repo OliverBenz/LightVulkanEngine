@@ -11,19 +11,19 @@ Swapchain::Swapchain(Window& window, Device& device) : m_window(window), m_devic
 	createSyncObjects();
 }
 
-VkExtent2D Swapchain::extent() {
+VkExtent2D Swapchain::extent() const {
 	return m_extent;
 }
 
-uint32_t Swapchain::currentFrame() {
+uint32_t Swapchain::currentFrame() const {
 	return m_currentFrame;
 }
 
-VkRenderPass Swapchain::renderPass() {
+VkRenderPass Swapchain::renderPass() const {
 	return m_renderPass;
 }
 
-VkFramebuffer Swapchain::frameBuffer(uint32_t imageIndex) {
+VkFramebuffer Swapchain::frameBuffer(uint32_t imageIndex) const {
 	return m_framebuffers[imageIndex];
 }
 
@@ -133,7 +133,7 @@ void Swapchain::createSwapChain() {
 	m_extent = extent;
 }
 
-VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) const {
 	for(const auto& availableFormat : availableFormats) {
 		if(availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
 			return availableFormat;
@@ -143,7 +143,7 @@ VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfac
 	return availableFormats[0];
 }
 
-VkPresentModeKHR Swapchain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
+VkPresentModeKHR Swapchain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) const {
 	for(const auto& availablePresentMode : availablePresentModes) {
 		// Different options good for dirrent scenarios (check p.83f)
 		if(availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -154,7 +154,7 @@ VkPresentModeKHR Swapchain::chooseSwapPresentMode(const std::vector<VkPresentMod
 	return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D Swapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
+VkExtent2D Swapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const {
 	// Get the swap chain image resolution. Needs to be resolved because of pixel vs coordinate issue. (p.85)
 	if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 		return capabilities.currentExtent;
@@ -306,7 +306,7 @@ void Swapchain::createImageViews() {
 	}
 }
 
-VkFormat Swapchain::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+VkFormat Swapchain::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const {
 	for (VkFormat format : candidates) {
 		VkFormatProperties properties;
 		vkGetPhysicalDeviceFormatProperties(m_device.physicalDevice(), format, &properties);
@@ -321,7 +321,7 @@ VkFormat Swapchain::findSupportedFormat(const std::vector<VkFormat>& candidates,
 	throw std::runtime_error("Failed to find supported format!");
 }
 
-VkFormat Swapchain::findDepthFormat() {
+VkFormat Swapchain::findDepthFormat() const {
 	return findSupportedFormat(
 			{VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
 			VK_IMAGE_TILING_OPTIMAL,

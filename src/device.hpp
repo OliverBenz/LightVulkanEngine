@@ -11,20 +11,20 @@ public:
 	Device(Window& window);
 	~Device();
 
-	VkDevice device();
-	VkSurfaceKHR surface();
-	VkPhysicalDevice physicalDevice();
-	VkCommandPool commandPool();
-	VkQueue graphicsQueue();
-	VkQueue presentQueue();
+	VkDevice device() const;
+	VkSurfaceKHR surface() const;
+	VkPhysicalDevice physicalDevice() const;
+	VkCommandPool commandPool() const;
+	VkQueue graphicsQueue() const;
+	VkQueue presentQueue() const;
 
-	bool validationLayersEnabled();
+	bool validationLayersEnabled() const;
 
 	// TODO: Make this prettier (getQueueFamilyInfo function or something like that..)
-	QueueFamilyIndices findQueueFamilies();
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-	SwapChainSupportDetails getSwapChainSupport(VkPhysicalDevice device);
+	QueueFamilyIndices findQueueFamilies() const;
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
+	SwapChainSupportDetails getSwapChainSupport(VkPhysicalDevice device) const;
 
 	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
@@ -40,9 +40,9 @@ private:
 	void createLogicalDevice();
 	void createCommandPool();
 
-	bool isDeviceSuitable(VkPhysicalDevice device);
-	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-	bool checkValidationLayerSupport();
+	bool isDeviceSuitable(VkPhysicalDevice device) const;
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device) const;
+	bool checkValidationLayerSupport() const;
 
 private:
 #ifdef NDEBUG

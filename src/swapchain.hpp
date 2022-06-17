@@ -11,10 +11,10 @@ public:
 	Swapchain(Window& window, Device& device);
 	~Swapchain();
 
-	VkExtent2D extent();
-	uint32_t currentFrame();
-	VkRenderPass renderPass();
-	VkFramebuffer frameBuffer(uint32_t imageIndex);
+	VkExtent2D extent() const;
+	uint32_t currentFrame() const;
+	VkRenderPass renderPass() const;
+	VkFramebuffer frameBuffer(uint32_t imageIndex) const;
 
 	//! Get the next image and write image index to variable.
 	VkResult getNextImage(uint32_t& imageIndex);
@@ -31,13 +31,13 @@ private:
 	void createFramebuffers();
 	void createSyncObjects();
 
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) const;
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) const;
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) const;
 
 	// Depth Image
-	VkFormat findDepthFormat();
-	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+	VkFormat findDepthFormat() const;
+	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,

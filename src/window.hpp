@@ -10,13 +10,13 @@ public:
 	Window(int width, int height, const std::string& name);
 	~Window();
 
-	bool shouldClose();
-	void update();
-	void stopWhileMinimized();
+	bool shouldClose() const;
+	void update() const;
+	void stopWhileMinimized() const;
 
 	// Getters
-	VkExtent2D extent();
-	GLFWwindow* handle();
+	VkExtent2D extent() const;
+	GLFWwindow* handle() const;
 
 	//! Check if window resized since last time calling this function.
 	bool resized();

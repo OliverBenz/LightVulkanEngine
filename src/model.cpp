@@ -59,7 +59,7 @@ void Model::loadModel() {
 
 			if (uniqueVertices.find(vertex) == uniqueVertices.end()) {
 				uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-				// m_vertices.push_back(vertex); TODO: Only using unique verices does not work for some reason..
+				// vertices.push_back(vertex); // TODO: Only using unique verices does not work for some reason..
 			}
 			vertices.push_back(vertex);
 			indices.push_back(indices.size());
