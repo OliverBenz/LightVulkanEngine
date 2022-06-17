@@ -72,8 +72,10 @@ const std::vector<uint16_t> indices = {
     4, 5, 6, 6, 7, 4
 };
 */
+
 struct UniformBufferObject {
 	alignas(16) glm::mat4 model;
 	alignas(16) glm::mat4 view;
 	alignas(16) glm::mat4 proj;
+	alignas(16) glm::vec3 offset;
 };

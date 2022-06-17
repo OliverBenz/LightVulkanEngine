@@ -267,17 +267,19 @@ void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t im
 	// TODO: Move currentFrame() function from swapchain to renderer class?
 	m_modelViking.bind(commandBuffer);
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSets[m_swapchain->currentFrame()], 0, nullptr);
+
+	updateUniformBuffer(m_swapchain->currentFrame(), {1.0f, 0.0f, 0.0f});
     m_modelViking.draw(commandBuffer);
+
+	// TODO: Why is it only drawn once??
+	updateUniformBuffer(m_swapchain->currentFrame(), {0.0f, 0.0f, 0.0f});
+	m_modelViking.draw(commandBuffer);
 
     vkCmdEndRenderPass(commandBuffer);
 
     if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("Failed to record command buffer!");
     }
-}
-
-static bool hasStencilComponent(VkFormat format) {
-    return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
 void Application::createUniformBuffers() {
@@ -398,9 +400,6 @@ void Application::drawFrame() {
 		throw std::runtime_error("Failed to acquire swap chain image!");
 	}
 
-	// Update uniform buffers
-    updateUniformBuffer(m_swapchain->currentFrame());
-
 	vkResetCommandBuffer(m_commandBuffers[m_swapchain->currentFrame()], 0);
 	recordCommandBuffer(m_commandBuffers[m_swapchain->currentFrame()], imageIndex);
 
@@ -413,7 +412,7 @@ void Application::drawFrame() {
 	}
 }
 
-void Application::updateUniformBuffer(uint32_t currentImage) {
+void Application::updateUniformBuffer(uint32_t currentImage, glm::vec3 offset) {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
@@ -423,10 +422,10 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), m_swapchain->extent().width / static_cast<float>(m_swapchain->extent().height), 0.1f, 10.0f);
-
     ubo.proj[1][1] *= -1;  // Invert the y-coordinate of clip coordinate because glm was designed for OpenGL
+	ubo.offset = offset;
 
-    // NOTE: More efficient way to do this is by using push constants. 
+    // NOTE: More efficient way to do this is by using push constants.
     void* data = nullptr;
     vkMapMemory(m_device.device(), m_uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
     memcpy(data, &ubo, sizeof(ubo));

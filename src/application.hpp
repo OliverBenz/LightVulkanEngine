@@ -33,7 +33,7 @@ private:
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     void drawFrame();
-    void updateUniformBuffer(uint32_t currentImage);
+    void updateUniformBuffer(uint32_t currentImage, glm::vec3 offset);
 
 	// To be moved to renderer
 	void recreateSwapchain();
