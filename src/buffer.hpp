@@ -1,55 +1,48 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-#include <vector>
-
 #include "device.hpp"
-#include "object.hpp"
 
 class Buffer {
 public:
-	// TODO: More objects
-	Buffer(Device& device, Object& object);
+	Buffer(Device& device, VkDeviceSize m_instanceSize, uint32_t m_instanceCount, VkBufferUsageFlags m_usageFlags,
+			VkMemoryPropertyFlags m_memoryPropertyFlags, VkDeviceSize minOffsetAlignment = 1);
 	~Buffer();
 
-	//! Bind the buffers of an object to a command Buffer
-	void bind(VkCommandBuffer commandBuffer) {
-		VkBuffer vertexBuffers[] = {m_vertexBuffer};
-		VkDeviceSize offsets[] = {0};
+	VkResult map(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+	void unmap();
 
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-	}
+	void writeToBuffer(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+	VkResult flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+	VkDescriptorBufferInfo descriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+	VkResult invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
-	void draw(VkCommandBuffer commandBuffer) {
-		vkCmdDrawIndexed(commandBuffer, m_object.indexCount(), 1, 0, 0, 0);
-	}
+	void writeToIndex(void* data, int index);
+	VkResult flushIndex(int index);
+	VkDescriptorBufferInfo descriptorInfoForIndex(int index);
+	VkResult invalidateIndex(int index);
 
-
-
-private:
-	void createVertexBuffer();
-	void createIndexBuffer();
-
-	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-					  VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-
-	VkCommandBuffer beginSingleTimeCommands();
-	void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+	VkBuffer getBuffer() const;
+	void* getMappedMemory() const;
+	uint32_t getInstanceCount() const;
+	VkDeviceSize getInstanceSize() const;
+	VkDeviceSize getAlignmentSize() const;
+	VkBufferUsageFlags getUsageFlags() const;
+	VkMemoryPropertyFlags getMemoryPropertyFlags() const;
+	VkDeviceSize getBufferSize() const;
 
 private:
-	// Owned by application
+	static VkDeviceSize getAlignment(VkDeviceSize m_instanceSize, VkDeviceSize minOffsetAlignment);
+
 	Device& m_device;
-	// Owned by renderer
-	Object& m_object;
+	void* m_mapped = nullptr;
+	VkBuffer m_buffer = VK_NULL_HANDLE;
+	VkDeviceMemory m_memory = VK_NULL_HANDLE;
 
-	// TODO: For multiple objects
-	VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
-	VkDeviceMemory m_vertexBufferMemory = VK_NULL_HANDLE;
-
-	VkBuffer m_indexBuffer = VK_NULL_HANDLE;
-	VkDeviceMemory m_indexBufferMemory = VK_NULL_HANDLE;
-
-
+	VkDeviceSize m_bufferSize;
+	uint32_t m_instanceCount;
+	VkDeviceSize m_instanceSize;
+	VkDeviceSize m_alignmentSize;
+	VkBufferUsageFlags m_usageFlags;
+	VkMemoryPropertyFlags m_memoryPropertyFlags;
 };
+

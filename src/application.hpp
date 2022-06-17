@@ -13,9 +13,6 @@
 #include "model.hpp"
 #include "buffer.hpp"
 
-// TODO: Add chapters
-//  - Callback messages (52ff)
-//  - Debugging instance creation and destruction (57ff)
 class Application {
 public:
     Application();
@@ -24,9 +21,6 @@ public:
     void run();
 
 private:
-    void initWindow();
-
-    VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
     void createDescriptorSetLayout();
     void createGraphicsPipeline();
     VkShaderModule createShadersModule(const std::vector<char>& code);
@@ -35,28 +29,11 @@ private:
     void createDescriptorPool();
     void createDescriptorSets();
 
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    VkCommandBuffer beginSingleTimeCommands();
-    void endSingleTimeCommands(VkCommandBuffer commandBuffer);
-
     void createCommandBuffers();
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     void drawFrame();
     void updateUniformBuffer(uint32_t currentImage);
-
-    // Image
-    void createTextureImage();
-    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-        VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-    void createTextureImageView();
-
-    // Texture sampler
-    void createTextureSampler();
 
 	// To be moved to renderer
 	void recreateSwapchain();
@@ -81,15 +58,6 @@ private:
     std::vector<VkBuffer> m_uniformBuffers;
     std::vector<VkDeviceMemory> m_uniformBuffersMemory;
 
-    // Image
-    VkImage m_textureImage;
-    VkDeviceMemory m_textureImageMemory;
-    VkImageView m_textureImageView;
-
-    // Texture Sampler
-    VkSampler m_textureSampler;
-
 	// Model
-	Model m_modelViking{"../resources/models/viking_room.obj","../resources/textures/viking_room.png"};
-	Buffer m_buffer{m_device, m_modelViking};
+	Model m_modelViking{m_device, "../resources/models/viking_room.obj","../resources/textures/viking_room.png"};
 };
