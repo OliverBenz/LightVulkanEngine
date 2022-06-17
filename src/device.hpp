@@ -1,10 +1,26 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <vector>
+#include <optional>
 
 #include "window.hpp"
-#include "queueFamilyIndices.hpp"
-#include "swapChainSupportDetails.hpp"
+
+struct SwapChainSupportDetails {
+	VkSurfaceCapabilitiesKHR capabilities;       // min/max number images, min/max size image, etc
+	std::vector<VkSurfaceFormatKHR> formats;     // pixel format, color space, etc
+	std::vector<VkPresentModeKHR> presentModes;  // presentation modes
+};
+
+// Presentation queue family could differ from graphics queue family. (p. 75)
+struct QueueFamilyIndices {
+	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
+
+	bool isComplete() {
+		return graphicsFamily.has_value() && presentFamily.has_value();
+	}
+};
 
 class Device {
 public:
