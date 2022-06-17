@@ -1,8 +1,8 @@
 CFLAGS = -std=c++17 -O2
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
-VulkanTest: main.cpp device.o window.o buffer.o swapchain.o application.hpp application.cpp vertex.hpp model.o
-	g++ $(CFLAGS) -o VulkanTest main.cpp device.o window.o buffer.o swapchain.o model.o application.cpp $(LDFLAGS)
+VulkanTest: main.cpp device.o window.o buffer.o swapchain.o application.hpp application.cpp vertex.hpp model.o pipeline.o
+	g++ $(CFLAGS) -o VulkanTest main.cpp device.o window.o buffer.o swapchain.o model.o pipeline.o application.cpp $(LDFLAGS)
 
 device.o: device.cpp device.hpp
 	g++ $(CFLAGS) -c device.cpp $(LDFLAGS)
@@ -18,6 +18,9 @@ buffer.o: buffer.cpp buffer.hpp device.o
 
 model.o: model.cpp model.hpp buffer.o device.o
 	g++ $(CFLAGS) -c model.cpp buffer.o device.o $(LDFLAGS)
+
+pipeline.o: pipeline.cpp pipeline.hpp device.o
+	g++ $(CFLAGS) -c pipeline.cpp device.o $(LDFLAGS)
 
 .PHONY: test clean
 

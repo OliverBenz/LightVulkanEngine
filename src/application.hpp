@@ -12,6 +12,7 @@
 #include "vertex.hpp"
 #include "model.hpp"
 #include "buffer.hpp"
+#include "pipeline.hpp"
 
 class Application {
 public:
@@ -23,7 +24,6 @@ public:
 private:
     void createDescriptorSetLayout();
     void createGraphicsPipeline();
-    VkShaderModule createShadersModule(const std::vector<char>& code);
 
     void createUniformBuffers();
     void createDescriptorPool();
@@ -46,11 +46,14 @@ private:
     Device m_device{m_window};
 	std::unique_ptr<Swapchain> m_swapchain{std::make_unique<Swapchain>(m_window, m_device)};
 
+	const std::string m_pathVertexShader = "../resources/shaders/vert.spv";
+	const std::string m_pathFragmentShader = "../resources/shaders/frag.spv";
+
+	std::unique_ptr<Pipeline> m_graphicsPipeline;
+
     VkDescriptorPool m_descriptorPool;
     std::vector<VkDescriptorSet> m_descriptorSets;
     VkDescriptorSetLayout m_descriptorSetLayout;
-    VkPipelineLayout m_pipelineLayout;
-    VkPipeline m_graphicsPipeline;
 
     // Buffers
     std::vector<VkCommandBuffer> m_commandBuffers;
