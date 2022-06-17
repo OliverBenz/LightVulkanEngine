@@ -1,7 +1,5 @@
 #include "window.hpp"
 
-#include <stdexcept>
-
 Window::Window(int width, int height, const std::string& name) : m_width(width), m_height(height), m_name(name) {
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);  // Do not create OpenGL context
