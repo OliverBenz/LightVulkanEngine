@@ -21,12 +21,11 @@ Model::Model(Device& device, const std::string pathModel, const std::string path
 	loadModel();
 }
 
-VkSampler Model::sampler() const {
-	return m_textureSampler;
-};
-
-VkImageView Model::imageView() const {
-	return m_textureImageView;
+VkDescriptorImageInfo Model::descriptorInfo() {
+	VkDescriptorImageInfo imageInfo{};
+	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imageInfo.imageView = m_textureImageView;;
+	imageInfo.sampler = m_textureSampler;
 }
 
 void Model::loadModel() {

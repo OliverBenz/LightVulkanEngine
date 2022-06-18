@@ -46,11 +46,7 @@ void Application::createDescriptorSets() {
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(UniformBufferObject);
 
-		// TODO: Move to model.
-        VkDescriptorImageInfo imageInfo{};
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = m_modelViking.imageView();
-        imageInfo.sampler = m_modelViking.sampler();
+		auto imageInfo = m_modelViking.descriptorInfo();
 
 		// Create descriptor set with two descriptors.
 		DescriptorWriter(*m_descriptorSetLayout, *m_descriptorPool)

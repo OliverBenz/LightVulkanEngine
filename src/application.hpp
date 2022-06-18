@@ -34,11 +34,14 @@ private:
 
 	std::unique_ptr<DescriptorPool> m_descriptorPool;
 
+	// TODO: These don't have to be class members; can be local.
 	std::unique_ptr<VkDescriptorSetLayout> m_descriptorSetLayout;
     std::vector<VkDescriptorSet> m_descriptorSets;
 
+	// TODO: Remove pipeline from this and use pipeline in indivitual systems.
 	Renderer m_renderer{m_device, m_window, m_descriptorSetLayout};
 
+	// TODO: Move this somewhere
     std::vector<VkBuffer> m_uniformBuffers;
     std::vector<VkDeviceMemory> m_uniformBuffersMemory;
 

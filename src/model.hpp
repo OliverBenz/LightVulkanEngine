@@ -16,8 +16,8 @@ public:
 	void bind(VkCommandBuffer commandBuffer);  //! Bind vertices and indices to command buffer.
 	void draw(VkCommandBuffer commandBuffer);  //! Add draw command to command buffer.
 
-	VkSampler sampler() const;
-	VkImageView imageView() const;
+	//! Get descriptor information for the texture image and sampler.
+	VkDescriptorImageInfo descriptorInfo();
 
 private:
 	//! Load model files and write to GPU buffers.
