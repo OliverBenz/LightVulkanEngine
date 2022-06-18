@@ -1,14 +1,10 @@
-//
-// Created by oliver on 18.06.22.
-//
+#pragma once
 
-#ifndef LIGHTVULKANENGINE_LOGGER_HPP
-#define LIGHTVULKANENGINE_LOGGER_HPP
-
-
-class logger {
-
+enum class LogLevel {
+	Info,
+	Debug,
+	Error,
+	Critical
 };
 
-
-#endif //LIGHTVULKANENGINE_LOGGER_HPP
+logMessage(LogLevel level, const char* message);
