@@ -13,7 +13,6 @@ Application::Application() {
 	createUniformBuffers();
 	createDescriptorPool();
 	createDescriptorSets();
-	createCommandBuffers();
 }
 
 void Application::createDescriptorSetLayout() {
@@ -129,58 +128,25 @@ void Application::run() {
 	while(!m_window.shouldClose()) {
         glfwPollEvents();
 
-		m_renderer.beginFrame();
-		recordCommandBuffer(m_renderer.commandBuffer(), m_renderer.currentImageIndex());
-		m_renderer.endFrame();
+		// Start rendering
+		VkCommandBuffer commandBuffer = m_renderer.beginFrame();
+		if(commandBuffer) {
+			m_renderer.beginSwapchainRenderPass(commandBuffer);
+
+			m_renderer.bindDesriptorSet(m_descriptorSets[m_renderer.currentSwapchainFrame()]);
+
+			// Rendering ouf stuff
+			m_modelViking.bind(commandBuffer);
+			updateUniformBuffer(m_renderer.currentSwapchainFrame(), {1.0f, 0.0f, 0.0f});
+			m_modelViking.draw(commandBuffer);
+
+			// End rendering
+			m_renderer.endSwapchainRenderPass(commandBuffer);
+			m_renderer.endFrame();
+		}
     }
 
     vkDeviceWaitIdle(m_device.device());
-}
-
-void Application::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = 0;
-	beginInfo.pInheritanceInfo = nullptr;
-
-	if(vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to begin recording command buffer!");
-	}
-
-	VkRenderPassBeginInfo renderPassInfo{};
-	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassInfo.renderPass = m_swapchain->renderPass();
-	renderPassInfo.framebuffer = m_swapchain->frameBuffer(imageIndex);
-	renderPassInfo.renderArea.offset = {0,0};
-	renderPassInfo.renderArea.extent = m_swapchain->extent();
-
-	std::array<VkClearValue, 2> clearValues{};
-	clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-	clearValues[1].depthStencil = {1.0f, 0};
-
-	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-	renderPassInfo.pClearValues = clearValues.data();
-
-	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-	m_graphicsPipeline->bind(commandBuffer);
-	// Bind vertex/index buffers to command buffer
-	// TODO: Move currentFrame() function from swapchain to renderer class?
-	m_modelViking.bind(commandBuffer);
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline->layout(), 0, 1, &m_descriptorSets[m_swapchain->currentFrame()], 0, nullptr);
-
-	updateUniformBuffer(m_swapchain->currentFrame(), {1.0f, 0.0f, 0.0f});
-	m_modelViking.draw(commandBuffer);
-
-	// TODO: Why is it only drawn once??
-	updateUniformBuffer(m_swapchain->currentFrame(), {0.0f, 0.0f, 0.0f});
-	m_modelViking.draw(commandBuffer);
-
-	vkCmdEndRenderPass(commandBuffer);
-
-	if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to record command buffer!");
-	}
 }
 
 void Application::updateUniformBuffer(uint32_t currentImage, glm::vec3 offset) {
@@ -192,7 +158,7 @@ void Application::updateUniformBuffer(uint32_t currentImage, glm::vec3 offset) {
     UniformBufferObject ubo{};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), m_swapchain->extent().width / static_cast<float>(m_swapchain->extent().height), 0.1f, 10.0f);
+    ubo.proj = glm::perspective(glm::radians(45.0f), m_renderer.swapchainExtent().width / static_cast<float>(m_renderer.swapchainExtent().height), 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;  // Invert the y-coordinate of clip coordinate because glm was designed for OpenGL
 	ubo.offset = offset;
 

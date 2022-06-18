@@ -27,20 +27,21 @@ private:
 
     void updateUniformBuffer(uint32_t currentImage, glm::vec3 offset);
 
-	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-
 private:
     static constexpr int WIDTH = 800;
     static constexpr int HEIGHT = 600;
 
     Window m_window{WIDTH, HEIGHT, "Vulkan"};
     Device m_device{m_window};
-	Renderer m_renderer{m_device, m_window};
 
     VkDescriptorPool m_descriptorPool;
     std::vector<VkDescriptorSet> m_descriptorSets;
     VkDescriptorSetLayout m_descriptorSetLayout;
+	Renderer m_renderer{m_device, m_window, m_descriptorSetLayout};
 
     std::vector<VkBuffer> m_uniformBuffers;
     std::vector<VkDeviceMemory> m_uniformBuffersMemory;
+
+	// Model
+	Model m_modelViking{m_device, "../resources/models/viking_room.obj","../resources/textures/viking_room.png"};
 };
