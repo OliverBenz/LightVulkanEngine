@@ -63,7 +63,6 @@ void Renderer::createCommandBuffers() {
 
 VkCommandBuffer Renderer::beginFrame() {
 	// Get next swapchain image
-	m_currentImageIndex = -1;
 	const VkResult result = m_swapchain->getNextImage(m_currentImageIndex);
 
 	if(result == VK_ERROR_OUT_OF_DATE_KHR) {
