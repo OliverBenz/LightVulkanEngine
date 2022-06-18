@@ -20,9 +20,9 @@ class DescriptorSetLayout {
 public:
 	class Builder {
 	public:
-		Builder(LveDevice &lveDevice);
+		Builder(Device& device);
 
-		Builder &addBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags, uint32_t count = 1);
+		Builder& addBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags, uint32_t count = 1);
 		std::unique_ptr<DescriptorSetLayout> build() const;
 
 	private:
@@ -42,7 +42,7 @@ private:
 	VkDescriptorSetLayout m_descriptorSetLayout;
 	std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> m_bindings;
 
-	friend DescriptorWriter;
+	friend class DescriptorWriter;
 };
 
 
@@ -57,7 +57,7 @@ public:
 		Builder& addPoolSize(VkDescriptorType descriptorType, uint32_t count);
 		Builder& setPoolFlags(VkDescriptorPoolCreateFlags flags); // Note: Flags not used for now.
 		Builder& setMaxSets(uint32_t count);
-		std::unique_ptr<LveDescriptorPool> build() const;
+		std::unique_ptr<DescriptorPool> build() const;
 
 	private:
 		Device& m_device;
@@ -80,7 +80,7 @@ private:
 
 	VkDescriptorPool m_descriptorPool;
 
-	friend DescriptorWriter;
+	friend class DescriptorWriter;
 };
 
 

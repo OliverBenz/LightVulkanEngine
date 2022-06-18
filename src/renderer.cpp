@@ -1,7 +1,6 @@
 #include "renderer.hpp"
 
-Renderer::Renderer(Device &device, Window &window, VkDescriptorSetLayout pipelineLayout) : m_device(device), m_window(window), m_descriptorSetLayout(pipelineLayout) {
-	createGraphicsPipeline();
+Renderer::Renderer(Device &device, Window &window) : m_device(device), m_window(window) {
 	createCommandBuffers();
 }
 
@@ -21,6 +20,10 @@ VkExtent2D Renderer::swapchainExtent() const {
 	return m_swapchain->extent();
 }
 
+VkRenderPass Renderer::swapchainRenderPass() const {
+	return m_swapchain->renderPass();
+}
+
 void Renderer::recreateSwapchain() {
 	// TODO: Pass old swapchain to new object to be copied and then delete it.
 	// Swapchain* oldSwapchain = m_swapchain.release();
@@ -33,19 +36,10 @@ void Renderer::recreateSwapchain() {
 	m_swapchain.reset(nullptr);
 	m_swapchain = std::make_unique<Swapchain>(m_window, m_device);
 
-	m_graphicsPipeline.reset(nullptr);
-	createGraphicsPipeline();
+	// TODO: Do we need to recreate pipeline with new swapchain?
+	//m_graphicsPipeline.reset(nullptr);
+	//createGraphicsPipeline();
 }
-
-void Renderer::createGraphicsPipeline() {
-	PipelineInfo pipelineInfo{};
-	pipelineInfo.extent = m_swapchain->extent();
-	pipelineInfo.descriptorSetLayout = &m_descriptorSetLayout;
-	pipelineInfo.renderPass = m_swapchain->renderPass();
-
-	m_graphicsPipeline = std::make_unique<Pipeline>(m_device,m_pathVertexShader,
-	                                                m_pathFragmentShader, pipelineInfo);
-};
 
 void Renderer::createCommandBuffers() {
 	m_commandBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
@@ -117,30 +111,10 @@ void Renderer::beginSwapchainRenderPass(VkCommandBuffer commandBuffer) {
 	renderPassInfo.pClearValues = clearValues.data();
 
 	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-	m_graphicsPipeline->bind(commandBuffer);
 }
 
 void Renderer::endSwapchainRenderPass(VkCommandBuffer commandBuffer) {
 	vkCmdEndRenderPass(commandBuffer);
-}
-
-void Renderer::bindDesriptorSet(VkDescriptorSet& descriptorSet) {
-	vkCmdBindDescriptorSets(
-			commandBuffer(),
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_graphicsPipeline->layout(), 0, 1,
-			&descriptorSet, 0, nullptr
-	);
-}
-
-void Renderer::bindDesriptorSets(std::vector<VkDescriptorSet>& descriptorSets) {
-	vkCmdBindDescriptorSets(
-			commandBuffer(),
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_graphicsPipeline->layout(), 0, descriptorSets.size(),
-			descriptorSets.data(), 0, nullptr
-			);
 }
 
 Renderer::~Renderer() {

@@ -26,6 +26,8 @@ VkDescriptorImageInfo Model::descriptorInfo() {
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imageInfo.imageView = m_textureImageView;;
 	imageInfo.sampler = m_textureSampler;
+
+	return imageInfo;
 }
 
 void Model::loadModel() {
