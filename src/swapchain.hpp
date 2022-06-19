@@ -60,7 +60,6 @@ private:
 	VkFormat m_imageFormat;
 	VkExtent2D m_extent;
 
-	// TODO: Refactor
 	std::vector<VkImage> m_images;
 	std::vector<VkImageView> m_imageViews;
 	std::vector<VkFramebuffer> m_framebuffers;

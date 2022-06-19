@@ -28,11 +28,10 @@ void Application::run() {
 	// Create two descriptor sets
 	std::array<VkDescriptorSet, Swapchain::MAX_FRAMES_IN_FLIGHT> descriptorSets;
 	for (int i = 0; i != descriptorSets.size(); ++i) {
-		auto imageInfo = m_modelViking.descriptorInfo();
 		auto bufferInfo = rotationSystem.bufferDescriptor(static_cast<uint32_t>(i));
+		auto imageInfo = m_modelViking.descriptorInfo();
 
 		// Create descriptor set with two descriptors from the specified pool with the specified layout.
-		// TODO: Add assertions that the bindings are the same as in the layout!
 		DescriptorWriter(*descriptorSetLayout, *m_descriptorPool)
 				.writeBuffer(0, &bufferInfo)
 				.writeImage(1, &imageInfo)

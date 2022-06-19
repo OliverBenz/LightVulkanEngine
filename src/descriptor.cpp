@@ -90,6 +90,7 @@ DescriptorSetLayout::Builder& DescriptorSetLayout::Builder::addBinding(uint32_t 
 	layoutBinding.stageFlags = stageFlags;
 
 	m_bindings[binding] = layoutBinding;
+
 	return *this;
 }
 
@@ -98,7 +99,8 @@ std::unique_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::build() const
 }
 
 // ----- Descriptor Set Layout -----
-DescriptorSetLayout::DescriptorSetLayout(Device& device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings) : m_device(device) {
+DescriptorSetLayout::DescriptorSetLayout(Device& device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings)
+	: m_device(device), m_bindings(bindings) {
 	// Write unordered_map to vector.
 	std::vector<VkDescriptorSetLayoutBinding> layoutBindings{};
 	for (auto kv : bindings) {
@@ -129,7 +131,7 @@ DescriptorWriter::DescriptorWriter(DescriptorSetLayout& setLayout, DescriptorPoo
 }
 
 DescriptorWriter& DescriptorWriter::writeBuffer(uint32_t binding, VkDescriptorBufferInfo* bufferInfo) {
-	auto& bindingDescription = m_setLayout.m_bindings[binding];
+	auto& bindingDescription = m_setLayout.m_bindings.at(binding);
 
 	VkWriteDescriptorSet descriptorWrite{};
 	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -144,7 +146,7 @@ DescriptorWriter& DescriptorWriter::writeBuffer(uint32_t binding, VkDescriptorBu
 }
 
 DescriptorWriter& DescriptorWriter::writeImage(uint32_t binding, VkDescriptorImageInfo* imageInfo) {
-	auto &bindingDescription = m_setLayout.m_bindings[binding];
+	auto &bindingDescription = m_setLayout.m_bindings.at(binding);
 
 	VkWriteDescriptorSet descriptorWrite{};
 	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

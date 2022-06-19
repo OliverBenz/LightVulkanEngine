@@ -9,7 +9,6 @@ Device::Device(Window& window) : m_window(window) {
 	createLogicalDevice();
 	createCommandPool();
 
-	// TODO: Place this properly
 	// Check validation layers
 	if(m_enableValidationLayers && !checkValidationLayerSupport()) {
 		throw std::runtime_error("Validation layers requested but not available!");
@@ -245,7 +244,6 @@ QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) const {
 
 		// TODO: Preferably explicitly check for *one* queue family that supports both -> slightly better performance
 		//   - This will probably already be the case but it's not a rule right now. (p. 75)
-
 		if(indices.isComplete()) {
 			break;
 		}

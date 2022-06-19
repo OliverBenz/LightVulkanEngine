@@ -36,9 +36,9 @@ public:
 
 	bool validationLayersEnabled() const;
 
-	// TODO: Make this prettier (getQueueFamilyInfo function or something like that..)
-	QueueFamilyIndices findQueueFamilies() const;
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
+	QueueFamilyIndices findQueueFamilies() const;                        //! Use selected physical device.
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const; //! Use any device.
+
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 	SwapChainSupportDetails getSwapChainSupport(VkPhysicalDevice device) const;
 
