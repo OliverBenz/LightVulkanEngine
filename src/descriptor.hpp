@@ -10,6 +10,8 @@
 //     Otherwise, we would have to construct structs before calling the class constructors, which is a little less pretty :-)
 
 #include <vulkan/vulkan.hpp>
+#include <unordered_map>
+#include <vector>
 #include <memory>
 
 #include "device.hpp"

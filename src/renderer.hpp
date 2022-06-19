@@ -1,11 +1,12 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
+#include <memory>
+#include <vector>
+
 #include "device.hpp"
 #include "window.hpp"
 #include "swapchain.hpp"
-#include "pipeline.hpp"
-#include "model.hpp"
 
 class Renderer {
 public:

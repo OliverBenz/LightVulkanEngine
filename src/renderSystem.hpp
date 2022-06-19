@@ -6,6 +6,7 @@
 
 #include <vulkan/vulkan.hpp>
 #include <vector>
+#include <memory>
 
 //! Example render system that does simple transformation.
 class RenderSystem {

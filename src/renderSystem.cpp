@@ -1,7 +1,6 @@
 #include "renderSystem.hpp"
-
-#include "vertex.hpp"
 #include "swapchain.hpp"
+#include "vertex.hpp"
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
