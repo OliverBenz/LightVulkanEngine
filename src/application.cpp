@@ -1,7 +1,5 @@
 #include "application.hpp"
 
-#include <vector>
-
 void Application::createDescriptorSets(RenderSystem& rotationSystem) {
     m_descriptorSets.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
 
@@ -27,7 +25,7 @@ void Application::run() {
 			.build();
 
 	RenderSystem rotationSystem{m_device, m_renderer.swapchainRenderPass(), m_descriptorSetLayout->descriptorSetLayout()};
-	std::vector<Object> rotationObjects{m_modelViking};
+	std::vector<Model*> rotationObjects = {&m_modelViking};
 
 	m_descriptorPool = DescriptorPool::Builder(m_device)
 			.setMaxSets(static_cast<uint32_t>(Swapchain::MAX_FRAMES_IN_FLIGHT))

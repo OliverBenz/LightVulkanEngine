@@ -1,6 +1,7 @@
 #include "renderSystem.hpp"
 
 #include "vertex.hpp"
+#include "swapchain.hpp"
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -23,8 +24,8 @@ VkDescriptorBufferInfo RenderSystem::bufferDescriptor(uint32_t currentFrame) {
 }
 
 void RenderSystem::createGraphicsPipeline(VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout) {
+	// TODO: Check pipelineLayout... 
 	PipelineInfo pipelineInfo{};
-	pipelineInfo.extent = m_swapchain->extent();
 	pipelineInfo.descriptorSetLayout = &descriptorSetLayout;
 	pipelineInfo.renderPass = renderPass;
 
@@ -43,7 +44,7 @@ void RenderSystem::createUniformBuffers() {
 	}
 }
 
-void RenderSystem::renderObjects(uint32_t currentImage, VkCommandBuffer commandBuffer, VkExtent2D frameExtent, VkDescriptorSet descriptorSet, std::vector<Object> objects) {
+void RenderSystem::renderObjects(uint32_t currentImage, VkCommandBuffer commandBuffer, VkExtent2D frameExtent, VkDescriptorSet descriptorSet, std::vector<Model*> objects) {
 	m_graphicsPipeline->bind(commandBuffer);
 	vkCmdBindDescriptorSets(
 			commandBuffer,
@@ -52,14 +53,14 @@ void RenderSystem::renderObjects(uint32_t currentImage, VkCommandBuffer commandB
 			&descriptorSet, 0, nullptr
 	);
 
-	for(auto o : objects) {
-		o.bind(commandBuffer);
-		updateUniformBuffer(currentImage, {0.0f, 0.0f, 0.0f});
-		o.draw(commandBuffer);
+	for(unsigned i = 0; i != objects.size(); ++i) {
+		objects[i]->bind(commandBuffer);
+		updateUniformBuffer(currentImage, frameExtent, {0.0f, 0.0f, 0.0f});
+		objects[i]->draw(commandBuffer);
 	}
 }
 
-void RenderSystem::updateUniformBuffer(uint32_t currentImage, glm::vec3 offset) {
+void RenderSystem::updateUniformBuffer(uint32_t currentImage, VkExtent2D frameExtent, glm::vec3 offset) {
 	static auto startTime = std::chrono::high_resolution_clock::now();
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
@@ -68,7 +69,7 @@ void RenderSystem::updateUniformBuffer(uint32_t currentImage, glm::vec3 offset) 
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f), m_renderer.swapchainExtent().width / static_cast<float>(m_renderer.swapchainExtent().height), 0.1f, 10.0f);
+	ubo.proj = glm::perspective(glm::radians(45.0f), frameExtent.width / static_cast<float>(frameExtent.height), 0.1f, 10.0f);
 	ubo.proj[1][1] *= -1;  // Invert the y-coordinate of clip coordinate because glm was designed for OpenGL
 	ubo.offset = offset;
 

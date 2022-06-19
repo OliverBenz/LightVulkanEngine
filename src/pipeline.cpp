@@ -86,24 +86,23 @@ void Pipeline::createGraphicsPipeline(const std::string& pathVertexFile, const s
 	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-	VkViewport viewport{};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(info.extent.width);
-	viewport.height = static_cast<float>(info.extent.height);
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-
-	VkRect2D scissor{};
-	scissor.offset = {0, 0};
-	scissor.extent = info.extent;
-
+	// NOTE: viewport and scissor information is passed dynamically in the renderer. This is less efficient but
+	//       we don't have to recreate the whole pipeline along with the swapchain!
 	VkPipelineViewportStateCreateInfo viewportState{};
 	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewportState.viewportCount = 1;
-	viewportState.pViewports = &viewport;
+	viewportState.pViewports = nullptr;
 	viewportState.scissorCount = 1;
-	viewportState.pScissors = &scissor;
+	viewportState.pScissors = nullptr;
+
+	// Dynamically load viewport/scissor
+	std::array<VkDynamicState, 2> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+	VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
+	dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicStateInfo.pDynamicStates = dynamicStates.data();
+	dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+	dynamicStateInfo.flags = 0;
 
 	VkPipelineRasterizationStateCreateInfo rasterizer{};
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -178,7 +177,7 @@ void Pipeline::createGraphicsPipeline(const std::string& pathVertexFile, const s
 	pipelineInfo.pMultisampleState = &multisampling;
 	pipelineInfo.pDepthStencilState = &depthStencil;
 	pipelineInfo.pColorBlendState = &colorBlending;
-	pipelineInfo.pDynamicState = nullptr;
+	pipelineInfo.pDynamicState = &dynamicStateInfo;
 	pipelineInfo.layout = m_pipelineLayout;
 	pipelineInfo.renderPass = info.renderPass;
 	pipelineInfo.subpass = 0;

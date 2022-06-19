@@ -18,6 +18,7 @@ public:
 	VkCommandBuffer& commandBuffer();
 	VkExtent2D swapchainExtent() const;
 	VkRenderPass swapchainRenderPass() const;
+	uint16_t maxFramesInFlight() const;
 
 	VkCommandBuffer beginFrame();
 	void endFrame();

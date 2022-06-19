@@ -1,14 +1,14 @@
 #pragma once
 
-#include "object.hpp"
 #include "device.hpp"
 #include "buffer.hpp"
+#include "vertex.hpp"
 
 #include <string>
 #include <vector>
 #include <memory>
 
-class Model : public Object {
+class Model {
 public:
 	Model(Device& device, const std::string pathModel, const std::string pathTexture);
 	~Model();

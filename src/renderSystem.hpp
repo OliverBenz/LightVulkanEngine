@@ -2,7 +2,7 @@
 
 #include "device.hpp"
 #include "pipeline.hpp"
-#include "object.hpp"
+#include "model.hpp"
 
 #include <vulkan/vulkan.hpp>
 #include <vector>
@@ -13,14 +13,14 @@ public:
 	RenderSystem(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout);
 	~RenderSystem();
 
-	void renderObjects(uint32_t currentFrame, VkCommandBuffer commandBuffer, VkExtent2D frameExtent, VkDescriptorSet descriptorSet, std::vector<Object> objects);
+	void renderObjects(uint32_t currentFrame, VkCommandBuffer commandBuffer, VkExtent2D frameExtent, VkDescriptorSet descriptorSet, std::vector<Model*> objects);
 
 	VkDescriptorBufferInfo bufferDescriptor(uint32_t currentFrame);
 
 private:
 	void createGraphicsPipeline(VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout);
 	void createUniformBuffers();
-	void updateUniformBuffer(uint32_t currentImage, glm::vec3 offset);
+	void updateUniformBuffer(uint32_t currentImage, VkExtent2D frameExtent, glm::vec3 offset);
 
 private:
 	// Owned by application

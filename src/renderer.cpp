@@ -35,10 +35,6 @@ void Renderer::recreateSwapchain() {
 
 	m_swapchain.reset(nullptr);
 	m_swapchain = std::make_unique<Swapchain>(m_window, m_device);
-
-	// TODO: Do we need to recreate pipeline with new swapchain?
-	//m_graphicsPipeline.reset(nullptr);
-	//createGraphicsPipeline();
 }
 
 void Renderer::createCommandBuffers() {
@@ -111,6 +107,24 @@ void Renderer::beginSwapchainRenderPass(VkCommandBuffer commandBuffer) {
 	renderPassInfo.pClearValues = clearValues.data();
 
 	vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	// NOTE: Setup viewport and scissor here instead of in the pipeline directly:
+	//       this is less efficient than creating the graphics pipeline with this information directly but it saves
+	//       us some hassle with passing swapchain information to the pipeline at creation and especially *recreation*.
+	VkViewport viewport{};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = static_cast<float>(m_swapchain->extent().width);
+	viewport.height = static_cast<float>(m_swapchain->extent().height);
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+
+	VkRect2D scissor{};
+	scissor.offset = {0, 0};
+	scissor.extent = m_swapchain->extent();
+
+	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
 void Renderer::endSwapchainRenderPass(VkCommandBuffer commandBuffer) {

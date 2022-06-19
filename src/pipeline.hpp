@@ -7,7 +7,6 @@
 #include "device.hpp"
 
 struct PipelineInfo {
-	VkExtent2D extent;
 	VkRenderPass renderPass;
 	VkDescriptorSetLayout* descriptorSetLayout;
 };
