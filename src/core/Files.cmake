@@ -1,0 +1,22 @@
+set(coreHeaders
+    "${CMAKE_CURRENT_LIST_DIR}/buffer.hpp"
+    "${CMAKE_CURRENT_LIST_DIR}/descriptor.hpp"
+    "${CMAKE_CURRENT_LIST_DIR}/device.hpp"
+    "${CMAKE_CURRENT_LIST_DIR}/model.hpp"
+    "${CMAKE_CURRENT_LIST_DIR}/pipeline.hpp"
+    "${CMAKE_CURRENT_LIST_DIR}/renderer.hpp"
+    "${CMAKE_CURRENT_LIST_DIR}/swapchain.hpp"
+    "${CMAKE_CURRENT_LIST_DIR}/vertex.hpp"
+    "${CMAKE_CURRENT_LIST_DIR}/window.hpp"
+)
+
+set(coreSources
+    "${CMAKE_CURRENT_LIST_DIR}/buffer.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/descriptor.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/device.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/model.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/pipeline.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/renderer.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/swapchain.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/window.cpp"
+)
