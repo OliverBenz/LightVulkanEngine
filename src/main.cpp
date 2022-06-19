@@ -1,9 +1,9 @@
-#include "triangleApp.hpp"
+#include "application.hpp"
 
 #include <iostream>
 
 int main() {
-    TriangleApp app;
+    Application app;
 
     try {
         app.run();
