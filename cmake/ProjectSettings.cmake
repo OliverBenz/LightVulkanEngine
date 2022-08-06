@@ -10,9 +10,9 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type." FORCE)
 
     set_property(CACHE CMAKE_BUILD_TYPE
-            PROPERTY STRINGS
-            "Debug"
-            "Release")
+        PROPERTY STRINGS
+        "Debug"
+        "Release")
 endif()
 
 # Use different name for debug library.
@@ -101,9 +101,9 @@ endfunction()
 
 function(set_output_directory targetName)
     set_target_properties(${targetName}
-            PROPERTIES
-            ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out/lib"
-            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out/lib"
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out/bin"
-            )
+        PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out/bin"
+        )
 endfunction()

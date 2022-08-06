@@ -1,26 +1,21 @@
 # Settings
 include(../cmake/CustomCommands.cmake)
-set(targetName "Engine")
+set(targetName "lwEngine")
+
 
 # External libraries
 find_package(glfw3 REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(Threads REQUIRED)
 find_package(X11 REQUIRED COMPONENTS Xxf86vm Xi Xrandr)
-
 # TODO: Check if included for each individual package
+
 
 # Get project files
 include("core/Files.cmake")
-include("renderSystems/Files.cmake")
-set(executableFiles
-    "${CMAKE_CURRENT_LIST_DIR}/main.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/application.hpp"
-    "${CMAKE_CURRENT_LIST_DIR}/application.cpp"
-)
 
 # Create library
-add_executable(${targetName}
+add_library(${targetName}
     # Core
     ${coreHeaders}
     ${coreSources}
@@ -28,9 +23,6 @@ add_executable(${targetName}
     # RenderSystems  TODO: Move outside from core library
     ${renderSystemsHeaders}
     ${renderSystemsSources}
-
-    # Executable     TODO: Move outside from core library
-    ${executableFiles}
 )
 
 # Link libraries.
@@ -61,4 +53,4 @@ target_compile_definitions(${targetName} PUBLIC VERSION_PATCH=2)
 
 # System installation
 install(TARGETS ${targetName} DESTINATION lib)
-install(FILES ${coreHeaders} DESTINATION include/lightVulkanEngine)
+install(FILES ${coreHeaders} DESTINATION include/${targetName})

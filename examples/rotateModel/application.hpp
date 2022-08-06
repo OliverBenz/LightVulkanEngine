@@ -2,11 +2,11 @@
 
 #include <memory>
 
-#include "core/window.hpp"
-#include "core/device.hpp"
-#include "core/renderer.hpp"
-#include "core/descriptor.hpp"
-#include "core/model.hpp"
+#include "window.hpp"
+#include "device.hpp"
+#include "renderer.hpp"
+#include "descriptor.hpp"
+#include "model.hpp"
 
 class Application {
 public:
