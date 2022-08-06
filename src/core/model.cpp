@@ -6,10 +6,10 @@
 #include "vertex.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "lib/tol/tiny_obj_loader.h"
+#include "tol/tiny_obj_loader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "lib/stb/stb_image.h"
+#include "stb/stb_image.h"
 
 Model::Model(Device& device, const std::string pathModel, const std::string pathTexture)
 	: m_device(device), m_pathModel(pathModel), m_pathTexture(pathTexture)

@@ -22,9 +22,12 @@ int main() {
 	glm::mat4 matrix;
 	glm::vec4 vec;
 	auto test = matrix*vec;
+	test *= -1;
 
-	while(!glfwWindowShouldClose(window))
+	// TODO: Close after 5 sec?
+	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+	}
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

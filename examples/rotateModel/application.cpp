@@ -27,7 +27,7 @@ void Application::run() {
 
 	// Create two descriptor sets
 	std::array<VkDescriptorSet, Swapchain::MAX_FRAMES_IN_FLIGHT> descriptorSets;
-	for (int i = 0; i != descriptorSets.size(); ++i) {
+	for (std::size_t i = 0; i != descriptorSets.size(); ++i) {
 		auto bufferInfo = rotationSystem.bufferDescriptor(static_cast<uint32_t>(i));
 		auto imageInfo = m_modelViking.descriptorInfo();
 

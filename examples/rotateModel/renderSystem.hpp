@@ -1,8 +1,8 @@
 #pragma once
 
-#include "device.hpp"
-#include "pipeline.hpp"
-#include "model.hpp"
+#include "lwEngine/device.hpp"
+#include "lwEngine/pipeline.hpp"
+#include "lwEngine/model.hpp"
 
 #include <vulkan/vulkan.hpp>
 #include <vector>
