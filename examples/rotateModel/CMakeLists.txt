@@ -14,10 +14,12 @@ add_executable(${targetName} ${executableFiles})
 
 # TODO: Use the include dir from output directory so the includes are in the format #include "lwEngine/..."
 target_include_directories(${targetName} PRIVATE  # Reference lib folder
-    ${CMAKE_SOURCE_DIR}/src/core
+    ${CMAKE_BINARY_DIR}/out/include
 )
 target_link_libraries(${targetName} PRIVATE "lwEngine")
+set_target_properties(${targetName} PROPERTIES FOLDER "${ideFolderExamples}")  # Set project location in solution tree
 
-
-# Options
+# Setup project settings
+set_project_warnings(${targetName})  # Which warnings to enable
 set_compile_options(${targetName})   # Which extra compiler flags to enable
+set_output_directory(${targetName})  # Set the output directory of the library

@@ -39,5 +39,5 @@ private:
 	std::unique_ptr<Swapchain> m_swapchain{std::make_unique<Swapchain>(m_window, m_device)};
 	std::vector<VkCommandBuffer> m_commandBuffers;
 
-	uint32_t m_currentImageIndex = -1;
+	uint32_t m_currentImageIndex = static_cast<uint32_t>(-1);
 };

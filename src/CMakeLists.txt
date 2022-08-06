@@ -36,10 +36,10 @@ target_link_libraries(${targetName} PRIVATE       # Link external libraries
     ${CMAKE_THREAD_LIBS_INIT}
     X11 Xxf86vm Xi Xrandr
 )
-set_target_properties(${targetName} PROPERTIES FOLDER "${ideFolderSource}")  # Set project location in solution tree
+set_target_properties(${targetName} PROPERTIES FOLDER "${ideFolderCore}")  # Set project location in solution tree
 
 # Setup project settings
-#set_project_warnings(${targetName})  # Which warnings to enable
+# set_project_warnings(${targetName})  # Which warnings to enable
 set_compile_options(${targetName})   # Which extra compiler flags to enable
 set_output_directory(${targetName})  # Set the output directory of the library
 

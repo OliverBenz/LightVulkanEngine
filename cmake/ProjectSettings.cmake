@@ -25,6 +25,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)  # In solution files; we want the
 set(ideFolderCore     "Core"     CACHE STRING "IDE folder for core projects.")
 set(ideFolderExamples "Examples" CACHE STRING "IDE folder for example projects.")
 set(ideFolderExternal "External" CACHE STRING "IDE folder for external projects.")
+set(ideFolderTests    "Tests"    CACHE STRING "IDE folder for testing projects.")
 
 
 # ----- Helper functions -----

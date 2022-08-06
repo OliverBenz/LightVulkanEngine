@@ -2,11 +2,11 @@
 
 #include <memory>
 
-#include "window.hpp"
-#include "device.hpp"
-#include "renderer.hpp"
-#include "descriptor.hpp"
-#include "model.hpp"
+#include "lwEngine/window.hpp"
+#include "lwEngine/device.hpp"
+#include "lwEngine/renderer.hpp"
+#include "lwEngine/descriptor.hpp"
+#include "lwEngine/model.hpp"
 
 class Application {
 public:

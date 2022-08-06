@@ -12,5 +12,11 @@ include(cmake/CompilerWarnings.cmake)
 
 
 add_subdirectory(src)
-#add_subdirectory(tests)
-add_subdirectory(examples)
+
+if(BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
+
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
