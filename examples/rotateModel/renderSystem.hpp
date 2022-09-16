@@ -27,8 +27,8 @@ private:
 	// Owned by application
 	Device& m_device;
 
-	const std::string m_pathVertexShader = "../resources/shaders/vert.spv";
-	const std::string m_pathFragmentShader = "../resources/shaders/frag.spv";
+	const std::string m_pathVertexShader = SHADER_PATH_VERTEX;
+	const std::string m_pathFragmentShader = SHADER_PATH_FRAGMENT;
 
 	std::vector<VkBuffer> m_uniformBuffers;
 	std::vector<VkDeviceMemory> m_uniformBuffersMemory;

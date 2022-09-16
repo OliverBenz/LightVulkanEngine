@@ -1,7 +1,7 @@
 .idea/
 build/
+cmake-build-*/
 
 VulkanTest
 *.o
-resources/shaders/frag.spv
-resources/shaders/vert.spv
+*.spv

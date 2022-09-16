@@ -21,5 +21,5 @@ private:
 	Renderer m_renderer{m_device, m_window};
 
 	std::unique_ptr<DescriptorPool> m_descriptorPool;
-	Model m_modelViking{m_device, "../resources/models/viking_room.obj","../resources/textures/viking_room.png"};
+	Model m_modelViking{m_device, RESOURCE_PATH_VIKING_MODEL, RESOURCE_PATH_VIKING_TEXTURE};
 };

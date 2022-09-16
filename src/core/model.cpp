@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <unordered_map>
+#include <filesystem>
 
 #include "vertex.hpp"
 
@@ -14,6 +15,9 @@
 Model::Model(Device& device, const std::string pathModel, const std::string pathTexture)
 	: m_device(device), m_pathModel(pathModel), m_pathTexture(pathTexture)
 {
+	assert(std::filesystem::is_regular_file(pathModel));
+	assert(std::filesystem::is_regular_file(pathTexture));
+
 	createTextureImage();
 	createTextureImageView();
 	createTextureSampler();
