@@ -22,4 +22,5 @@ private:
 
 	std::unique_ptr<DescriptorPool> m_descriptorPool;
 	Model m_modelViking{m_device, RESOURCE_PATH_VIKING_MODEL, RESOURCE_PATH_VIKING_TEXTURE};
+	Model m_modelViking1{m_device, RESOURCE_PATH_VIKING_MODEL, RESOURCE_PATH_VIKING_TEXTURE};
 };

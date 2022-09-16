@@ -21,7 +21,7 @@ public:
 private:
 	void createGraphicsPipeline(VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout);
 	void createUniformBuffers();
-	void updateUniformBuffer(uint32_t currentImage, VkExtent2D frameExtent, glm::vec3 offset);
+	void updateUniformBuffer(uint32_t currentImage, VkExtent2D frameExtent, unsigned objectId);
 
 private:
 	// Owned by application

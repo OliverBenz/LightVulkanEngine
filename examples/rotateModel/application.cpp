@@ -16,7 +16,7 @@ void Application::run() {
 
 	// Create render systems
 	RenderSystem rotationSystem{m_device, m_renderer.swapchainRenderPass(), descriptorSetLayout->descriptorSetLayout()};
-	std::vector<Model*> rotationObjects = {&m_modelViking};
+	std::vector<Model*> rotationObjects = {&m_modelViking, &m_modelViking1};
 
 	// Create descriptor pool
 	m_descriptorPool = DescriptorPool::Builder(m_device)

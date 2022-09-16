@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
+#include <iostream>
 
 RenderSystem::RenderSystem(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout)
 	: m_device(device) {
@@ -17,7 +18,7 @@ VkDescriptorBufferInfo RenderSystem::bufferDescriptor(uint32_t currentFrame) {
 	VkDescriptorBufferInfo bufferInfo{};
 	bufferInfo.buffer = m_uniformBuffers[currentFrame];
 	bufferInfo.offset = 0;
-	bufferInfo.range = sizeof(UniformBufferObject);
+	bufferInfo.range = sizeof(UniformBufferObject) * 2;
 
 	return bufferInfo;
 }
@@ -32,7 +33,7 @@ void RenderSystem::createGraphicsPipeline(VkRenderPass renderPass, VkDescriptorS
 };
 
 void RenderSystem::createUniformBuffers() {
-	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+	VkDeviceSize bufferSize = sizeof(UniformBufferObject) * 2;
 
 	m_uniformBuffers.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
 	m_uniformBuffersMemory.resize(Swapchain::MAX_FRAMES_IN_FLIGHT);
@@ -54,12 +55,13 @@ void RenderSystem::renderObjects(uint32_t currentImage, VkCommandBuffer commandB
 
 	for(unsigned i = 0; i != objects.size(); ++i) {
 		objects[i]->bind(commandBuffer);
-		updateUniformBuffer(currentImage, frameExtent, {0.0f, 0.0f, 0.0f});
+		std::cerr << i << "\n";
+		updateUniformBuffer(currentImage, frameExtent, i);
 		objects[i]->draw(commandBuffer);
 	}
 }
 
-void RenderSystem::updateUniformBuffer(uint32_t currentImage, VkExtent2D frameExtent, glm::vec3 offset) {
+void RenderSystem::updateUniformBuffer(uint32_t currentImage, VkExtent2D frameExtent, unsigned objectId) {
 	static auto startTime = std::chrono::high_resolution_clock::now();
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
@@ -67,14 +69,14 @@ void RenderSystem::updateUniformBuffer(uint32_t currentImage, VkExtent2D frameEx
 
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.view = glm::lookAt(glm::vec3(3.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), static_cast<float>(frameExtent.width) / static_cast<float>(frameExtent.height), 0.1f, 10.0f);
 	ubo.proj[1][1] *= -1;  // Invert the y-coordinate of clip coordinate because glm was designed for OpenGL
-	ubo.offset = offset;
+	ubo.offset = {(objectId % 2 == 0) ? -3.0f : +3.0f, 0.0f, 0.0f};
 
 	// NOTE: More efficient way to do this is by using push constants.
 	void* data = nullptr;
-	vkMapMemory(m_device.device(), m_uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
+	vkMapMemory(m_device.device(), m_uniformBuffersMemory[currentImage], objectId*sizeof(ubo), sizeof(ubo), 0, &data);
 	memcpy(data, &ubo, sizeof(ubo));
 	vkUnmapMemory(m_device.device(), m_uniformBuffersMemory[currentImage]);
 }
