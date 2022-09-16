@@ -23,9 +23,12 @@ set_project_warnings(${targetName})  # Which warnings to enable
 set_compile_options(${targetName})   # Which extra compiler flags to enable
 set_output_directory(${targetName})  # Set the output directory of the library
 
-# Add paths to resources
-add_compile_definitions(RESOURCE_PATH_VIKING_MODEL="${CMAKE_CURRENT_SOURCE_DIR}/resources/models/viking_room.obj")
-add_compile_definitions(RESOURCE_PATH_VIKING_TEXTURE="${CMAKE_CURRENT_SOURCE_DIR}/resources/textures/viking_room.png")
 
-add_compile_definitions(SHADER_PATH_VERTEX="${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders/vert.spv")
-add_compile_definitions(SHADER_PATH_FRAGMENT="${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders/frag.spv")
+# Add resource path macros
+target_compile_definitions(${targetName} PRIVATE RESOURCE_PATH_VIKING_MODEL="${CMAKE_CURRENT_SOURCE_DIR}/resources/models/viking_room.obj")
+target_compile_definitions(${targetName} PRIVATE RESOURCE_PATH_VIKING_TEXTURE="${CMAKE_CURRENT_SOURCE_DIR}/resources/textures/viking_room.png")
+
+target_compile_definitions(${targetName} PRIVATE SHADER_PATH_VERTEX="${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders/vert.spv")
+target_compile_definitions(${targetName} PRIVATE SHADER_PATH_FRAGMENT="${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders/frag.spv")
+
+execute_process(COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders/compile.sh")
