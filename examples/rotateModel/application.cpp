@@ -48,11 +48,9 @@ void Application::run() {
 			m_renderer.beginSwapchainRenderPass(commandBuffer);
 
 			// Rendering ouf stuff
-			m_modelViking.bind(commandBuffer);
 			rotationSystem.renderObjects(m_renderer.currentSwapchainFrame(), commandBuffer,
 										 m_renderer.swapchainExtent(), descriptorSets[m_renderer.currentSwapchainFrame()],
 										 rotationObjects);
-			m_modelViking.draw(commandBuffer);
 
 			// End rendering
 			m_renderer.endSwapchainRenderPass(commandBuffer);
