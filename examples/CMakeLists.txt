@@ -1,1 +1,2 @@
 add_subdirectory(rotateModel)
+add_subdirectory(simpleTriangle)
