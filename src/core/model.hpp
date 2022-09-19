@@ -13,18 +13,18 @@ public:
 	Model(Device& device, const std::string pathModel, const std::string pathTexture);
 	~Model();
 
-	void bind(VkCommandBuffer commandBuffer);  //! Bind vertices and indices to command buffer.
-	void draw(VkCommandBuffer commandBuffer);  //! Add draw command to command buffer.
+	void bind(VkCommandBuffer commandBuffer) const;  //! Bind vertices and indices to command buffer.
+	void draw(VkCommandBuffer commandBuffer) const;  //! Add draw command to command buffer.
 
 	//! Get descriptor information for the texture image and sampler.
 	VkDescriptorImageInfo descriptorInfo();
 
-private:
+protected:
 	//! Load model files and write to GPU buffers.
 	void loadModel();
 
-	void createVertexBuffer(std::vector<Vertex>& vertices);
-	void createIndexBuffer(std::vector<uint32_t>& indices);
+	void createVertexBuffer(const std::vector<Vertex>& vertices);
+	void createIndexBuffer(const std::vector<uint32_t>& indices);
 
 	// Texture TODO: Better design.. Should this be in here? Some functions are duplicated.
 	void createTextureSampler();
@@ -36,7 +36,7 @@ private:
 	void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
 	                 VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 
-private:
+protected:
 	// Owned by application
 	Device& m_device;
 

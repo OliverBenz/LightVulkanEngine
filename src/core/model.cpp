@@ -15,14 +15,17 @@
 Model::Model(Device& device, const std::string pathModel, const std::string pathTexture)
 	: m_device(device), m_pathModel(pathModel), m_pathTexture(pathTexture)
 {
-	assert(std::filesystem::is_regular_file(pathModel));
-	assert(std::filesystem::is_regular_file(pathTexture));
+	//assert(std::filesystem::is_regular_file(pathModel));
+	//assert(std::filesystem::is_regular_file(pathTexture));
 
-	createTextureImage();
-	createTextureImageView();
-	createTextureSampler();
-
-	loadModel();
+	if(!pathTexture.empty()) {
+		createTextureImage();
+		createTextureImageView();
+		createTextureSampler();
+	}
+	if(!pathModel.empty()) {
+		loadModel();
+	}
 }
 
 VkDescriptorImageInfo Model::descriptorInfo() {
@@ -79,7 +82,7 @@ void Model::loadModel() {
 	}
 }
 
-void Model::createVertexBuffer(std::vector<Vertex>& vertices) {
+void Model::createVertexBuffer(const std::vector<Vertex>& vertices) {
 	uint32_t vertexCount = static_cast<uint32_t>(vertices.size());
 	uint32_t vertexSize = sizeof(vertices[0]);
 	VkDeviceSize bufferSize = vertexSize * vertexCount;
@@ -99,7 +102,7 @@ void Model::createVertexBuffer(std::vector<Vertex>& vertices) {
 	m_device.copyBuffer(stagingBuffer.getBuffer(), m_vertexBuffer->getBuffer(), bufferSize);
 }
 
-void Model::createIndexBuffer(std::vector<uint32_t>& indices) {
+void Model::createIndexBuffer(const std::vector<uint32_t>& indices) {
 	m_hasIndexBuffer = !indices.empty();
 	if(!m_hasIndexBuffer) {
 		return;
@@ -161,7 +164,7 @@ void Model::createTextureImage() {
 	vkFreeMemory(m_device.device(), stagingBufferMemory, nullptr);
 }
 
-void Model::bind(VkCommandBuffer commandBuffer) {
+void Model::bind(VkCommandBuffer commandBuffer) const {
 	VkBuffer vertexBuffers[] = {m_vertexBuffer->getBuffer()};
 	VkDeviceSize offsets[] = {0};
 
@@ -171,7 +174,7 @@ void Model::bind(VkCommandBuffer commandBuffer) {
 	}
 }
 
-void Model::draw(VkCommandBuffer commandBuffer) {
+void Model::draw(VkCommandBuffer commandBuffer) const {
 	if(m_hasIndexBuffer) {
 		vkCmdDrawIndexed(commandBuffer, m_indexBuffer->getInstanceCount(), 1, 0, 0, 0);
 	} else {
