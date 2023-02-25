@@ -1,5 +1,4 @@
 # Settings
-include(../cmake/CustomCommands.cmake)
 set(targetName "lwEngine")
 
 
